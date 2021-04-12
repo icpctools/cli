@@ -51,7 +51,10 @@ func getContests(client http.Client) ([]Contest, error) {
 
 	// parse response
 	var contests []Contest
-	getJson(*resp, &contests)
+	err = getJson(*resp, &contests)
+	if err != nil {
+		return nil, err
+	}
 	return contests, nil
 }
 
@@ -69,7 +72,10 @@ func getProblems(client http.Client) ([]Problem, error) {
 
 	// parse response
 	var problems []Problem
-	getJson(*resp, &problems)
+	err = getJson(*resp, &problems)
+	if err != nil {
+		return nil, err
+	}
 	return problems, nil
 }
 
@@ -94,7 +100,7 @@ func postClarification(client http.Client, problemId string, text string) (strin
 	}
 	// parse response
 	var clarificationId string
-	getJson(*resp, &clarificationId)
+	err = getJson(*resp, &clarificationId)
 	if err != nil {
 		return "", err
 	}
@@ -122,7 +128,7 @@ func postSubmission(client http.Client, problemId string, languageId string, fil
 		return "", err
 	}
 	var submissionId string
-	getJson(*resp, &submissionId)
+	err = getJson(*resp, &submissionId)
 	if err != nil {
 		return "", err
 	}

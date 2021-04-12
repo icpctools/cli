@@ -65,7 +65,7 @@ Using all optional params
 TBD, would show all submitted clarifications, responses, and broadcast messages. `contest list clars`?
 
 ### Posting a submission
-`contest submit -p <problemId> -l <languageId> -e <entry_point> <file>`
+`contest submit -p <problemId> -l <languageId> -e <entry_point> <file1> [<file2> <file3> ...]`
 
 ### Listing submissions
 TBD, would show all team's submissons and judgements. `contest list submissions`?
@@ -91,7 +91,7 @@ TBD, would show all team's submissons and judgements. `contest list submissions`
 > Clarification posted successfully: clar47
 
 ### Use at ICPC Finals
-- Url pre-configured in .netrc
+- Url pre-configured
 - Auto-login by IP
 
 `contest clar C "Can we assume x is never 0?"`
