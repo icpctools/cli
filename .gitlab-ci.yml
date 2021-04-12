@@ -1,0 +1,35 @@
+---
+# GitLab build configuration
+
+stages:
+  - build
+
+build:
+  image: golang:1.16
+  stage: build
+  needs: []
+  rules:
+    - if: '$CI_COMMIT_REF_NAME != "HEAD"'
+      when: on_success
+    - when: never
+  script:
+    - go build
+    - |
+      if [[ $GOOS == 'windows' ]];
+      then
+        tar -cvzf contest-${GOOS}-${GOARCH}.tar.gz contest.exe;
+      else
+        tar -cvzf contest-${GOOS}-${GOARCH}.tar.gz contest;
+      fi
+  parallel:
+    matrix:
+      - GOOS: windows
+        GOARCH: [386, amd64]
+      - GOOS: linux
+        GOARCH: [386, amd64, arm64]
+      - GOOS: darwin
+        GOARCH: [amd64, arm64]
+  artifacts:
+    paths:
+      - contest-${GOOS}-${GOARCH}.tar.gz
+    expire_in: 1 month
