@@ -10,30 +10,123 @@ import (
 )
 
 // Current use:
-//   contest -c <contestURL> -u <user> -p <password> -insecure clar <text>
+//   contest -url <baseURL> -u <user> -p <password> contests
+//   contest -url <baseURL> -c contestId -u <user> -p <password> problems
+//   contest -url <baseURL> -c contestId -u <user> -p <password> clar <text>
+//   contest -url <baseURL> -c contestId -u <user> -p <password> submit <text>
 // -insecure is optional, the rest isn't. Problem id is hardcoded to "checks" for now
 
-var contestURL string
+var baseURL string
+var contestId string
 var user string
 var password string
 
-func postClarification(client http.Client, problemId string, text string) (*http.Response, error) {
+type Contest struct {
+	Id   string
+	Name string
+}
+
+type Problem struct {
+	Label string
+	Name  string
+}
+
+func getJson(resp http.Response, target interface{}) error {
+	defer resp.Body.Close()
+
+	return json.NewDecoder(resp.Body).Decode(target)
+}
+
+func getContests(client http.Client) ([]Contest, error) {
+	req, err := http.NewRequest("GET", baseURL+"/contests/", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(user, password)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// parse response
+	var contests []Contest
+	getJson(*resp, &contests)
+	return contests, nil
+}
+
+func getProblems(client http.Client) ([]Problem, error) {
+	req, err := http.NewRequest("GET", baseURL+"/contests/"+contestId+"/problems", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(user, password)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// parse response
+	var problems []Problem
+	getJson(*resp, &problems)
+	return problems, nil
+}
+
+func postClarification(client http.Client, problemId string, text string) (string, error) {
 	requestBody, err := json.Marshal(map[string]string{
 		"problem_id": problemId,
 		"text":       text,
 	})
 	if err != nil {
-		fmt.Println("Error 1: ", err)
-		return nil, err
+		return "", err
 	}
 
-	req, err := http.NewRequest("POST", contestURL+"/clarifications", bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("POST", baseURL+"/contests/"+contestId+"/clarifications", bytes.NewBuffer(requestBody))
 	if err != nil {
-		fmt.Println("Error 2: ", err)
-		return nil, err
+		return "", err
 	}
+
 	req.SetBasicAuth(user, password)
-	return client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	// parse response
+	var clarificationId string
+	getJson(*resp, &clarificationId)
+	if err != nil {
+		return "", err
+	}
+	return clarificationId, nil
+}
+
+func postSubmission(client http.Client, problemId string, languageId string, file string) (string, error) {
+	requestBody, err := json.Marshal(map[string]string{
+		"problem_id":  problemId,
+		"language_id": languageId,
+		"file":        file,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest("POST", baseURL+"/contests/"+contestId+"/submissions", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return "", err
+	}
+
+	req.SetBasicAuth(user, password)
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	var submissionId string
+	getJson(*resp, &submissionId)
+	if err != nil {
+		return "", err
+	}
+	return submissionId, nil
 }
 
 func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
@@ -42,14 +135,20 @@ func redirectPolicyFunc(req *http.Request, via []*http.Request) error {
 }
 
 func main() {
-	flag.StringVar(&contestURL, "c", "", "the 'Contest URL'")
+	flag.StringVar(&baseURL, "url", "", "the base 'Contest URL'") // TODO if there is a trailing slash we should remove it
+	flag.StringVar(&contestId, "c", "", "the 'contest id'")
 	flag.StringVar(&user, "u", "", "the 'user'")
 	flag.StringVar(&password, "p", "", "the 'password'")
 	insecure := flag.Bool("insecure", false, "whether the connection is secure")
 	flag.Parse()
 
-	if contestURL == "" {
-		fmt.Println("No contest URL")
+	if baseURL == "" {
+		fmt.Println("No base contest URL")
+		return
+	}
+
+	if contestId == "" {
+		fmt.Println("No contest id")
 		return
 	}
 
@@ -57,17 +156,6 @@ func main() {
 		fmt.Println("No command given")
 		return
 	}
-
-	if flag.Args()[0] != "clar" {
-		fmt.Println("Only 'clar' command is supported")
-		return
-	}
-
-	if len(flag.Args()) != 2 {
-		fmt.Println("Clarification text not provided correctly")
-		return
-	}
-	text := flag.Args()[1]
 
 	if *insecure {
 		fmt.Println("Insecure")
@@ -78,16 +166,53 @@ func main() {
 		CheckRedirect: redirectPolicyFunc,
 	}
 
-	resp, err := postClarification(*client, "checks", text)
-
-	if err != nil {
-		fmt.Println("Error 3: ", err)
-		return
-	} else {
-		if resp.StatusCode == 200 {
-			fmt.Println("Clarification submitted successfully!")
-		} else {
-			fmt.Println("Error submitting clarification: ", resp.StatusCode)
+	if flag.Args()[0] == "clar" {
+		if len(flag.Args()) != 2 {
+			fmt.Println("Clarification text not provided correctly")
+			return
 		}
+
+		text := flag.Args()[1]
+		clarificationId, err := postClarification(*client, "checks", text)
+		if err != nil {
+			fmt.Println("Error submitting clarification: ", err)
+			return
+		} else {
+			fmt.Println("Clarification submitted successfully! ", clarificationId)
+		}
+	} else if flag.Args()[0] == "submit" {
+		if len(flag.Args()) != 2 {
+			fmt.Println("Submission not provided correctly")
+			return
+		}
+
+		text := flag.Args()[1]
+		submissionId, err := postSubmission(*client, text, text, text)
+		if err != nil {
+			fmt.Println("Error submitting: ", err)
+			return
+		} else {
+			fmt.Println("Submitted successfully! ", submissionId)
+		}
+	} else if flag.Args()[0] == "contests" {
+		contests, err := getContests(*client)
+		if err != nil {
+			fmt.Println("Error getting contests: ", err)
+			return
+		} else {
+			fmt.Println("Contests found successfully! ", contests)
+			fmt.Printf("Contests: %+v", contests)
+		}
+	} else if flag.Args()[0] == "problems" {
+		problems, err := getProblems(*client)
+		if err != nil {
+			fmt.Println("Error getting problems: ", err)
+			return
+		} else {
+			fmt.Println("Problems found successfully! ", problems)
+			fmt.Printf("Problems: %+v", problems)
+		}
+	} else {
+		fmt.Println("Only 'clar' command is supported")
 	}
 }
