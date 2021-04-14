@@ -64,7 +64,7 @@ func init() {
 	flag.StringVar(&contestId, "c", "", "the 'contest id'")
 	flag.StringVar(&user, "u", "", "the 'user'")
 	flag.StringVar(&password, "p", "", "the 'password'")
-	insecure = *flag.Bool("insecure", false, "whether the connection is secure")
+	flag.BoolVar(&insecure, "insecure", false, "whether the connection is secure")
 	flag.Parse()
 
 	// Strip trailing slash of the baseurl
@@ -146,11 +146,13 @@ func getContests(client http.Client) ([]Contest, error) {
 
 	resp, err := client.Get(baseURL + "/contests")
 	// Body is always non-nil, ensure it will always be closed
-	defer resp.Body.Close()
 	if err != nil {
 		return contests, err
-	} else if err := handleStatus(resp.StatusCode); err != nil {
-		return contests, err
+	} else {
+		defer resp.Body.Close()
+		if err := handleStatus(resp.StatusCode); err != nil {
+			return contests, err
+		}
 	}
 
 	// Parse response, no need for specific control flow on error
@@ -162,11 +164,13 @@ func getProblems(client http.Client) ([]Problem, error) {
 
 	resp, err := client.Get(baseURL + "/contests/" + contestId + "/problems")
 	// Body is always non-nil, ensure it will always be closed
-	defer resp.Body.Close()
 	if err != nil {
 		return problems, err
-	} else if err := handleStatus(resp.StatusCode); err != nil {
-		return problems, err
+	} else {
+		defer resp.Body.Close()
+		if err := handleStatus(resp.StatusCode); err != nil {
+			return problems, err
+		}
 	}
 
 	// Parse response, no need for specific control flow on error
@@ -190,11 +194,13 @@ func postClarification(client http.Client, problemId string, text string) (strin
 	}
 
 	resp, err := client.Post(baseURL+"/contests/"+contestId+"/clarifications", "application/json", buf)
-	defer resp.Body.Close()
 	if err != nil {
 		return clarificationId, err
-	} else if err := handleStatus(resp.StatusCode); err != nil {
-		return clarificationId, err
+	} else {
+		defer resp.Body.Close()
+		if err := handleStatus(resp.StatusCode); err != nil {
+			return clarificationId, err
+		}
 	}
 
 	// parse response
@@ -218,8 +224,11 @@ func postSubmission(client http.Client, problemId string, languageId string, fil
 	resp, err := client.Post(baseURL+"/contests/"+contestId+"/submissions", "application/json", buf)
 	if err != nil {
 		return submissionId, err
-	} else if err := handleStatus(resp.StatusCode); err != nil {
-		return "", err
+	} else {
+		defer resp.Body.Close()
+		if err := handleStatus(resp.StatusCode); err != nil {
+			return submissionId, err
+		}
 	}
 
 	// parse response
