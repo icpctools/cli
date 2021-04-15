@@ -8,6 +8,8 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -20,13 +22,18 @@ import (
 
 type (
 	Contest struct {
-		Id   string `json:"id"`
-		Name string `json:"name"`
+		Id         string `json:"id"`
+		Name       string `json:"name"`
+		FormalName string `json:"formal_name"`
+		StartTime  string `json:"start_time"`
+		Duration   string `json:"duration"`
 	}
 
 	Problem struct {
-		Label string `json:"label"`
-		Name  string `json:"name"`
+		Id      string `json:"id"`
+		Label   string `json:"label"`
+		Name    string `json:"name"`
+		Ordinal int    `json:"ordinal"`
 	}
 
 	// Implementation of the http.RoundTripper interface, used for always adding basic-auth
@@ -42,6 +49,48 @@ func (b basicAuthTransport) RoundTrip(request *http.Request) (*http.Response, er
 	}
 
 	return b.T.RoundTrip(request)
+}
+
+// parse a relative time (regex: "(-)?(h)*h:mm:ss(.uuu)?") and convert to integer milliseconds
+func parseRelTime(relTime string) int64 {
+	re := regexp.MustCompile("(-?[0-9]{1,2}):([0-9]{2}):([0-9]{2})(.[0-9]{3})?")
+	sm := re.FindStringSubmatch(relTime)
+	h, err := strconv.ParseInt(sm[1], 10, 64)
+	if err != nil {
+		return 0
+	}
+	m, err := strconv.ParseInt(sm[2], 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	s, err := strconv.ParseInt(sm[3], 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return s*1000 + m*60000 + h*3600000
+}
+
+// format a relative time in milliseconds into a human-readable string
+func formatRelTime(relTime int64) string {
+	h := relTime / 3600000
+	relTime -= h * 3600000
+	m := relTime / 60000
+	relTime -= m * 60000
+	s := relTime / 1000
+
+	var time = ""
+	if h > 0 {
+		time += strconv.FormatInt(h, 10) + "h"
+	}
+	if m > 0 {
+		time += strconv.FormatInt(m, 10) + "m"
+	}
+	if s > 0 {
+		time += strconv.FormatInt(s, 10) + "s"
+	}
+	return time
 }
 
 var (
@@ -126,15 +175,23 @@ func main() {
 		if contests, err := getContests(client); err != nil {
 			fmt.Println("Error getting contests:", err)
 		} else {
-			fmt.Println("Contests found successfully!", contests)
-			fmt.Printf("Contests: %+v", contests)
+			fmt.Printf("Contests (%d):\n", len(contests))
+			for i := range contests {
+				c := contests[i]
+				fmt.Printf("  %s: %s\n", c.Id, c.Name)
+				dur := parseRelTime(c.Duration)
+				fmt.Printf("     %s starting at %s\n", formatRelTime(dur), c.StartTime)
+			}
 		}
 	case "problems":
 		if problems, err := getProblems(client); err != nil {
 			fmt.Println("Error getting problems:", err)
 		} else {
-			fmt.Println("Problems found successfully!", problems)
-			fmt.Printf("Problems: %+v", problems)
+			fmt.Printf("Problems (%d):\n", len(problems))
+			for i := range problems {
+				p := problems[i]
+				fmt.Printf("  %s: %s\n", p.Label, p.Name)
+			}
 		}
 	default:
 		fmt.Println("Only 'clar', 'submit', 'contests', and 'problems' commands are supported")
