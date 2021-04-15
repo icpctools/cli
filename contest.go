@@ -148,11 +148,13 @@ func getContests(client http.Client) ([]Contest, error) {
 	// Body is always non-nil, ensure it will always be closed
 	if err != nil {
 		return contests, err
-	} else {
-		defer resp.Body.Close()
-		if err := handleStatus(resp.StatusCode); err != nil {
-			return contests, err
-		}
+	}
+
+	// Body is not-nil, ensure it will always be closed
+	defer resp.Body.Close()
+
+	if err := handleStatus(resp.StatusCode); err != nil {
+		return contests, err
 	}
 
 	// Parse response, no need for specific control flow on error
@@ -166,11 +168,13 @@ func getProblems(client http.Client) ([]Problem, error) {
 	// Body is always non-nil, ensure it will always be closed
 	if err != nil {
 		return problems, err
-	} else {
-		defer resp.Body.Close()
-		if err := handleStatus(resp.StatusCode); err != nil {
-			return problems, err
-		}
+	}
+
+	// Body is not-nil, ensure it will always be closed
+	defer resp.Body.Close()
+
+	if err := handleStatus(resp.StatusCode); err != nil {
+		return problems, err
 	}
 
 	// Parse response, no need for specific control flow on error
@@ -196,11 +200,13 @@ func postClarification(client http.Client, problemId string, text string) (strin
 	resp, err := client.Post(baseURL+"/contests/"+contestId+"/clarifications", "application/json", buf)
 	if err != nil {
 		return clarificationId, err
-	} else {
-		defer resp.Body.Close()
-		if err := handleStatus(resp.StatusCode); err != nil {
-			return clarificationId, err
-		}
+	}
+
+	// Body is not-nil, ensure it will always be closed
+	defer resp.Body.Close()
+
+	if err := handleStatus(resp.StatusCode); err != nil {
+		return clarificationId, err
 	}
 
 	// parse response
@@ -224,11 +230,13 @@ func postSubmission(client http.Client, problemId string, languageId string, fil
 	resp, err := client.Post(baseURL+"/contests/"+contestId+"/submissions", "application/json", buf)
 	if err != nil {
 		return submissionId, err
-	} else {
-		defer resp.Body.Close()
-		if err := handleStatus(resp.StatusCode); err != nil {
-			return submissionId, err
-		}
+	}
+
+	// Body is not-nil, ensure it will always be closed
+	defer resp.Body.Close()
+
+	if err := handleStatus(resp.StatusCode); err != nil {
+		return submissionId, err
 	}
 
 	// parse response
