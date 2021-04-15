@@ -29,7 +29,7 @@ type (
 		Name  string `json:"name"`
 	}
 
-	// Implmentation of the http.RoundTripper interface, used for always adding basic-auth
+	// Implementation of the http.RoundTripper interface, used for always adding basic-auth
 	basicAuthTransport struct {
 		T http.RoundTripper
 	}
@@ -52,7 +52,7 @@ var (
 
 	insecure bool
 
-	// Ensure BasicAuthTransport adheres to the interface
+	// Ensure basicAuthTransport adheres to the interface
 	_ http.RoundTripper = basicAuthTransport{}
 
 	errUnauthorized = errors.New("request not authorized")
@@ -100,7 +100,7 @@ func main() {
 	}
 
 	// flag.Arg always return empty string if arg is not set
-	var text string = flag.Arg(1)
+	var text = flag.Arg(1)
 	var hasText = text != ""
 
 	// Switch is preferred over large else-if chains, though sometimes (as with this nested case) else-if is clearly more
