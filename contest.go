@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Current use:
@@ -21,12 +22,20 @@ import (
 // -insecure is optional, the rest isn't. Problem id is hardcoded to "checks" for now
 
 type (
+	ApiTime struct {
+		time.Time
+	}
+
+	ApiRelTime struct {
+		time.Duration
+	}
+
 	Contest struct {
-		Id         string `json:"id"`
-		Name       string `json:"name"`
-		FormalName string `json:"formal_name"`
-		StartTime  string `json:"start_time"`
-		Duration   string `json:"duration"`
+		Id         string     `json:"id"`
+		Name       string     `json:"name"`
+		FormalName string     `json:"formal_name"`
+		StartTime  ApiTime    `json:"start_time"`
+		Duration   ApiRelTime `json:"duration"`
 	}
 
 	Problem struct {
@@ -51,46 +60,65 @@ func (b basicAuthTransport) RoundTrip(request *http.Request) (*http.Response, er
 	return b.T.RoundTrip(request)
 }
 
-// parse a relative time (regex: "(-)?(h)*h:mm:ss(.uuu)?") and convert to integer milliseconds
-func parseRelTime(relTime string) int64 {
-	re := regexp.MustCompile("(-?[0-9]{1,2}):([0-9]{2}):([0-9]{2})(.[0-9]{3})?")
-	sm := re.FindStringSubmatch(relTime)
+func (a *ApiTime) UnmarshalJSON(b []byte) (err error) {
+	data := strings.Trim(string(b), "\"")
+
+	if data == "null" {
+		a.Time = time.Time{}
+		return
+	}
+
+	// All possible time formats we support
+	var supportedTimeFormats = []string{
+		// time.RFC3999 also accepts milliseconds, even though it is not officially stated
+		time.RFC3339,
+		// time.RFC3999 but then without the minutes of the timezone
+		"2006-01-02T15:04:05Z07",
+	}
+	for _, supportedTimeFormat := range supportedTimeFormats {
+		if t, err := time.Parse(supportedTimeFormat, data); err == nil {
+			a.Time = t
+			return nil
+		}
+	}
+
+	return fmt.Errorf("can not format date: %s", data)
+}
+
+func (a *ApiRelTime) UnmarshalJSON(b []byte) (err error) {
+	data := strings.Trim(string(b), "\"")
+	if data == "null" {
+		a.Duration = 0
+		return
+	}
+	re := regexp.MustCompile("(-?[0-9]{1,2}):([0-9]{2}):([0-9]{2})(.([0-9]{3}))?")
+	sm := re.FindStringSubmatch(data)
 	h, err := strconv.ParseInt(sm[1], 10, 64)
 	if err != nil {
-		return 0
+		return err
 	}
+
 	m, err := strconv.ParseInt(sm[2], 10, 64)
 	if err != nil {
-		return 0
+		return err
 	}
 
 	s, err := strconv.ParseInt(sm[3], 10, 64)
 	if err != nil {
-		return 0
+		return err
 	}
 
-	return s*1000 + m*60000 + h*3600000
-}
+	var ms int64 = 0
+	if sm[5] != "" {
+		ms, err = strconv.ParseInt(sm[5], 10, 64)
+		if err != nil {
+			return err
+		}
+	}
 
-// format a relative time in milliseconds into a human-readable string
-func formatRelTime(relTime int64) string {
-	h := relTime / 3600000
-	relTime -= h * 3600000
-	m := relTime / 60000
-	relTime -= m * 60000
-	s := relTime / 1000
+	a.Duration = time.Duration(h)*time.Hour + time.Duration(m)*time.Minute + time.Duration(s)*time.Second + time.Duration(ms)*time.Millisecond
 
-	var time = ""
-	if h > 0 {
-		time += strconv.FormatInt(h, 10) + "h"
-	}
-	if m > 0 {
-		time += strconv.FormatInt(m, 10) + "m"
-	}
-	if s > 0 {
-		time += strconv.FormatInt(s, 10) + "s"
-	}
-	return time
+	return
 }
 
 var (
@@ -103,6 +131,10 @@ var (
 
 	// Ensure basicAuthTransport adheres to the interface
 	_ http.RoundTripper = basicAuthTransport{}
+
+	// Ensure ApiTime and ApiRelTime adhere to the json.Unmarshaler interface
+	_ json.Unmarshaler = &ApiTime{}
+	_ json.Unmarshaler = &ApiRelTime{}
 
 	errUnauthorized = errors.New("request not authorized")
 	errNotFound     = errors.New("object not found")
@@ -179,8 +211,7 @@ func main() {
 			for i := range contests {
 				c := contests[i]
 				fmt.Printf("  %s: %s\n", c.Id, c.Name)
-				dur := parseRelTime(c.Duration)
-				fmt.Printf("     %s starting at %s\n", formatRelTime(dur), c.StartTime)
+				fmt.Printf("     %s starting at %s\n", c.Duration, c.StartTime)
 			}
 		}
 	case "problems":
