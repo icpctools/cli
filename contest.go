@@ -22,13 +22,9 @@ import (
 // -insecure is optional, the rest isn't. Problem id is hardcoded to "checks" for now
 
 type (
-	ApiTime struct {
-		time.Time
-	}
+	ApiTime time.Time
 
-	ApiRelTime struct {
-		time.Duration
-	}
+	ApiRelTime time.Duration
 
 	Contest struct {
 		Id         string     `json:"id"`
@@ -64,7 +60,7 @@ func (a *ApiTime) UnmarshalJSON(b []byte) (err error) {
 	data := strings.Trim(string(b), "\"")
 
 	if data == "null" {
-		a.Time = time.Time{}
+		*a = ApiTime(time.Time{})
 		return
 	}
 
@@ -77,7 +73,7 @@ func (a *ApiTime) UnmarshalJSON(b []byte) (err error) {
 	}
 	for _, supportedTimeFormat := range supportedTimeFormats {
 		if t, err := time.Parse(supportedTimeFormat, data); err == nil {
-			a.Time = t
+			*a = ApiTime(t)
 			return nil
 		}
 	}
@@ -88,7 +84,7 @@ func (a *ApiTime) UnmarshalJSON(b []byte) (err error) {
 func (a *ApiRelTime) UnmarshalJSON(b []byte) (err error) {
 	data := strings.Trim(string(b), "\"")
 	if data == "null" {
-		a.Duration = 0
+		*a = 0
 		return
 	}
 	re := regexp.MustCompile("(-?[0-9]{1,2}):([0-9]{2}):([0-9]{2})(.([0-9]{3}))?")
@@ -116,9 +112,25 @@ func (a *ApiRelTime) UnmarshalJSON(b []byte) (err error) {
 		}
 	}
 
-	a.Duration = time.Duration(h)*time.Hour + time.Duration(m)*time.Minute + time.Duration(s)*time.Second + time.Duration(ms)*time.Millisecond
+	*a = ApiRelTime(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute + time.Duration(s)*time.Second + time.Duration(ms)*time.Millisecond)
 
 	return
+}
+
+func (a ApiRelTime) Duration() time.Duration {
+	return time.Duration(a)
+}
+
+func (a ApiTime) Time() time.Time {
+	return time.Time(a)
+}
+
+func (a ApiRelTime) String() string {
+	return time.Duration(a).String()
+}
+
+func (a ApiTime) String() string {
+	return time.Time(a).String()
 }
 
 var (
@@ -133,8 +145,8 @@ var (
 	_ http.RoundTripper = basicAuthTransport{}
 
 	// Ensure ApiTime and ApiRelTime adhere to the json.Unmarshaler interface
-	_ json.Unmarshaler = &ApiTime{}
-	_ json.Unmarshaler = &ApiRelTime{}
+	_ json.Unmarshaler = new(ApiTime)
+	_ json.Unmarshaler = new(ApiRelTime)
 
 	errUnauthorized = errors.New("request not authorized")
 	errNotFound     = errors.New("object not found")
@@ -146,13 +158,14 @@ func init() {
 	flag.StringVar(&user, "u", "", "the 'user'")
 	flag.StringVar(&password, "p", "", "the 'password'")
 	flag.BoolVar(&insecure, "insecure", false, "whether the connection is secure")
+}
+
+func main() {
 	flag.Parse()
 
 	// Strip trailing slash of the baseurl
 	baseURL = strings.TrimSuffix(baseURL, "/")
-}
 
-func main() {
 	if len(flag.Args()) == 0 {
 		fmt.Println("No command given")
 		return
