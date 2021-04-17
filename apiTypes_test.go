@@ -23,8 +23,14 @@ func TestApiTime_UnmarshalJSON(t *testing.T) {
 			jsonString := fmt.Sprintf(jsonFormat, now.Format(f))
 			assert.Nil(t, json.Unmarshal([]byte(jsonString), &ti))
 			assert.EqualValues(t, now.Truncate(time.Second).UnixNano(), ti.T.Time().UnixNano())
+
+			// Also test when the value is null
+			jsonString = `{"T": null}`
+			assert.Nil(t, json.Unmarshal([]byte(jsonString), &ti))
+			assert.EqualValues(t, time.Time{}.UnixNano(), ti.T.Time().UnixNano())
 		})
 	}
+
 }
 
 func TestApiRelTime_UnmarshalJSON(t *testing.T) {
@@ -37,4 +43,9 @@ func TestApiRelTime_UnmarshalJSON(t *testing.T) {
 	duration := time.Minute * 3 + time.Second * 38 + time.Millisecond * 749
 	assert.Nil(t, json.Unmarshal([]byte(jsonString), &ti))
 	assert.EqualValues(t, duration, ti.T.Duration())
+
+	// Test null
+	jsonString = `{"T": null}`
+	assert.Nil(t, json.Unmarshal([]byte(jsonString), &ti))
+	assert.EqualValues(t, time.Duration(0), ti.T.Duration())
 }
