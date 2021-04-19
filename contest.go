@@ -47,9 +47,11 @@ var (
 	errNotFound     = errors.New("object not found")
 
 	interactors = map[string]ApiInteractor{
-		"contests":    new(Contest),
-		"problems":    new(Problem),
-		"submissions": new(Submission),
+		"contests":        new(Contest),
+		"problems":        new(Problem),
+		"submissions":     new(Submission),
+		"judgement-types": new(JudgementType),
+		"judgements":      new(Judgement),
 	}
 )
 
@@ -118,7 +120,7 @@ func main() {
 		} else {
 			fmt.Println("Submitted successfully!", submissionId)
 		}
-	case "contests", "problems", "submissions":
+	case "contests", "problems", "submissions", "judgement-types", "judgements":
 		title := strings.Title(typ)
 		if objects, err := getObjects(client, interactors[typ], id); err != nil {
 			fmt.Printf("Error getting %v: %v\n", title, err)

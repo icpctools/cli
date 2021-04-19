@@ -36,6 +36,13 @@ type (
 		Duration   ApiRelTime `json:"duration"`
 	}
 
+	JudgementType struct {
+		Id      string `json:"id"`
+		Name    string `json:"name"`
+		Penalty bool   `json:"penalty"`
+		Solved  bool   `json:"solved"`
+	}
+
 	Problem struct {
 		Id      string `json:"id"`
 		Label   string `json:"label"`
@@ -47,18 +54,31 @@ type (
 		Id          string     `json:"id"`
 		LanguageId  string     `json:"language_id"`
 		ContestTime ApiRelTime `json:"contest_time"`
+		Time        ApiTime    `json:"time"`
 		TeamId      string     `json:"team_id"`
 		ProblemId   string     `json:"problem_id"`
 		ExternalId  string     `json:"external_id"`
 		EntryPoint  string     `json:"entry_point"`
+	}
+
+	Judgement struct {
+		Id               string     `json:"id"`
+		SubmissionId     string     `json:"submission_id"`
+		JudgementTypeId  string     `json:"judgement_type_id"`
+		StartContestTime ApiRelTime `json:"start_contest_time"`
+		StartTime        ApiTime    `json:"start_time"`
+		EndContestTime   ApiRelTime `json:"end_contest_time"`
+		EndTime          ApiTime    `json:"end_time"`
 	}
 )
 
 // Ensure all types adhere to required interfaces
 var (
 	_ ApiInteractor = new(Contest)
+	_ ApiInteractor = new(JudgementType)
 	_ ApiInteractor = new(Problem)
 	_ ApiInteractor = new(Submission)
+	_ ApiInteractor = new(Judgement)
 
 	_ json.Unmarshaler = new(ApiTime)
 	_ JSONUnmarshaller = new(ApiTime)
@@ -90,6 +110,27 @@ func (c Contest) Path(contestId, id string) string {
 
 func (c *Contest) Generator() ApiInteractor {
 	return new(Contest)
+}
+
+func (jt *JudgementType) FromJSON(bytes []byte) error {
+	return json.Unmarshal(bytes, jt)
+}
+
+func (jt JudgementType) String() string {
+	return fmt.Sprintf(`
+         id: %v
+       name: %v
+    penalty: %v
+     solved: %v
+`, jt.Id, jt.Name, jt.Penalty, jt.Solved)
+}
+
+func (jt JudgementType) Path(contestId, id string) string {
+	return "contests/" + contestId + "/judgement-types/" + id
+}
+
+func (jt JudgementType) Generator() ApiInteractor {
+	return new(JudgementType)
 }
 
 func (p *Problem) FromJSON(bytes []byte) error {
@@ -206,6 +247,27 @@ contest time: %v
 `, s.Id, s.LanguageId, s.ContestTime, s.TeamId, s.ProblemId, s.ExternalId, s.EntryPoint)
 }
 
+func (j *Judgement) FromJSON(bytes []byte) error {
+	return json.Unmarshal(bytes, j)
+}
+
+func (j Judgement) Path(contestId, id string) string {
+	return "contests/" + contestId + "/judgements/" + id
+}
+
+func (j Judgement) Generator() ApiInteractor {
+	return new(Judgement)
+}
+
+func (j Judgement) String() string {
+	return fmt.Sprintf(`
+                id: %v
+     submission id: %v
+start_contest time: %v
+  end_contest time: %v
+ judgement_type id: %v
+`, j.Id, j.SubmissionId, j.StartContestTime, j.EndContestTime, j.JudgementTypeId)
+}
 
 func (a ApiRelTime) Duration() time.Duration {
 	return time.Duration(a)
