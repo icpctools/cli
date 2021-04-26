@@ -55,21 +55,21 @@ func (c *Config) WriteConfig() error {
 	// Ensure config path exists
 	err := configdir.MakePath(configPath)
 	if err != nil {
-		return fmt.Errorf("can not create config folder: %s\n", err)
+		return fmt.Errorf("can not create config folder: %w", err)
 	}
 
 	configFile := c.ConfigFile()
 
 	fh, err := os.Create(configFile)
 	if err != nil {
-		return fmt.Errorf("can not write config file: %s\n", err)
+		return fmt.Errorf("can not write config file: %w", err)
 	}
 
 	defer fh.Close()
 
 	err = yaml.NewEncoder(fh).Encode(c)
 	if err != nil {
-		return fmt.Errorf("can not write config file: %s\n", err)
+		return fmt.Errorf("can not write config file: %w", err)
 	}
 
 	return nil

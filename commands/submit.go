@@ -58,14 +58,14 @@ func submit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Try to load all the files from the arguments
-	files := interactor.NewLocalFileReference()
+	var files interactor.LocalFileReference
 	for _, filename := range args {
 		file, err := os.Open(filename)
 		if err != nil {
 			return fmt.Errorf("could not open file %s; %w", filename, err)
 		}
 
-		err = files.AddFromFile(file)
+		err = files.FromFile(file)
 		if err != nil {
 			return fmt.Errorf("could not add file %s; %w", filename, err)
 		}
@@ -75,7 +75,7 @@ func submit(cmd *cobra.Command, args []string) error {
 	if problemId == "" || languageId == "" {
 		// Assume first part of the basename can be used to detect problem and the extension can be used to detect language
 		firstFileParts := strings.Split(filepath.Base(args[0]), ".")
-		extension := ""
+		var extension string
 		if len(firstFileParts) > 1 {
 			extension = strings.ToLower(firstFileParts[len(firstFileParts)-1])
 		}
@@ -101,7 +101,7 @@ func submit(cmd *cobra.Command, args []string) error {
 	var language *interactor.Language
 
 	for _, p := range problems {
-		if strings.ToLower(p.Id) == strings.ToLower(problemId) || strings.ToLower(p.Label) == strings.ToLower(problemId) {
+		if strings.EqualFold(p.Id, problemId) || strings.EqualFold(p.Label, problemId) {
 			problem = &p
 			break
 		}
@@ -129,9 +129,8 @@ func submit(cmd *cobra.Command, args []string) error {
 			// Java: use base name of first file
 			parts := strings.Split(filepath.Base(args[0]), ".")
 			entryPoint = parts[0]
-		case "python2":
-		case "python3":
-		case "python":
+		case "python", "python2", "python3":
+			// go has no automatic falltrough, either keyword `fallthrough` must be used, or a combined case should be presented
 			// Python: use first file
 			entryPoint = filepath.Base(args[0])
 		case "kotlin":
@@ -151,9 +150,8 @@ func submit(cmd *cobra.Command, args []string) error {
 		} else {
 			fmt.Print("  filenames:  ")
 			for _, filename := range args {
-				fmt.Printf(" %s", filename)
+				fmt.Printf(" %s\n", filename)
 			}
-			fmt.Println()
 		}
 
 		fmt.Printf("  contest:     %s\n", contest.Name)
@@ -173,8 +171,8 @@ func submit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not submit: %w", err)
 	}
 
-	_, err = fmt.Fprintf(cmd.OutOrStdout(), "Submitted. ID: %s\n", submissionId)
-	return err
+	fmt.Println("Submitted. ID:", submissionId)
+	return nil
 }
 
 func kotlinBaseEntryPoint(base string) string {
@@ -182,24 +180,17 @@ func kotlinBaseEntryPoint(base string) string {
 		return "_"
 	}
 
-	isAlpha := func(r rune) bool {
-		return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
-	}
-	isNum := func(r rune) bool {
-		return r >= '0' && r <= '9'
-	}
-
 	out := []rune(base)
 	for i, r := range out {
-		if !isAlpha(r) && !isNum(r) {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
 			out[i] = '_'
 		}
 	}
 
-	if isAlpha(out[0]) {
+	if unicode.IsLetter(out[0]) {
 		out[0] = unicode.ToUpper(out[0])
 		return string(out)
-	} else {
-		return "_" + string(out)
 	}
+
+	return "_" + string(out)
 }

@@ -18,7 +18,9 @@ func TestKotlinBaseEntryPoint(t *testing.T) {
 	}
 
 	for _, tc := range testcases {
-		output := kotlinBaseEntryPoint(tc.input)
-		assert.EqualValues(t, tc.expectedOutput, output)
+		t.Run(tc.input, func(t *testing.T) {
+			output := kotlinBaseEntryPoint(tc.input)
+			assert.EqualValues(t, tc.expectedOutput, output)
+		})
 	}
 }
