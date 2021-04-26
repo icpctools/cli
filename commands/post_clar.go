@@ -7,10 +7,6 @@ import (
 	interactor "github.com/tuupke/api-interactor"
 )
 
-var (
-	problemId string
-)
-
 func init() {
 	cmd := &cobra.Command{
 		Use:   "post-clar [text]",
