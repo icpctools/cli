@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	interactor "github.com/tuupke/api-interactor"
@@ -17,6 +18,10 @@ func init() {
 }
 
 func fetchContests(cmd *cobra.Command, args []string) error {
+	if baseUrl == "" {
+		return errors.New("no base URL provided in flag or config")
+	}
+
 	api, err := interactor.ContestsInteractor(baseUrl, username, password, insecure)
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)

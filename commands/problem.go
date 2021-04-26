@@ -1,29 +1,30 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	interactor "github.com/tuupke/api-interactor"
 )
 
-var problemsCommand = &cobra.Command{
-	Use:   "problem",
-	Short: "Get problemss",
-	RunE:  fetchProblems,
-}
-
 func init() {
-
-	if err := problemsCommand.MarkPersistentFlagRequired("contest"); err != nil {
-		panic(err)
+	cmd := &cobra.Command{
+		Use:   "problem",
+		Short: "Get problems",
+		RunE:  fetchProblems,
 	}
 
-	rootCommand.AddCommand(problemsCommand)
-
-
+	rootCommand.AddCommand(cmd)
 }
 
 func fetchProblems(cmd *cobra.Command, args []string) error {
+	if baseUrl == "" {
+		return errors.New("no base URL provided in flag or config")
+	}
+	if contestId == "" {
+		return errors.New("no contest ID provided in flag or config")
+	}
+
 	api, err := interactor.ContestInteractor(baseUrl, username, password, contestId, insecure)
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)
