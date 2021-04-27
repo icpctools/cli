@@ -3,18 +3,15 @@ package commands
 import (
 	"errors"
 	"fmt"
+
 	"github.com/spf13/cobra"
 	interactor "github.com/tuupke/api-interactor"
 )
 
-func init() {
-	cmd := &cobra.Command{
-		Use:   "problem",
-		Short: "Get problems",
-		RunE:  fetchProblems,
-	}
-
-	rootCommand.AddCommand(cmd)
+var problemCommand = &cobra.Command{
+	Use:   "problem",
+	Short: "Get problems",
+	RunE:  fetchProblems,
 }
 
 func fetchProblems(cmd *cobra.Command, args []string) error {

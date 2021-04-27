@@ -3,21 +3,16 @@ package commands
 import (
 	"errors"
 	"fmt"
+
 	"github.com/spf13/cobra"
 	interactor "github.com/tuupke/api-interactor"
 )
 
-func init() {
-	cmd := &cobra.Command{
-		Use:   "post-clar [text]",
-		Short: "Post a clarification",
-		Args:  cobra.ExactValidArgs(1),
-		RunE:  postClarification,
-	}
-
-	cmd.Flags().StringVar(&problemId, "problem", "", "problem ID to post a clarification for. Leave empty for general clarification")
-
-	rootCommand.AddCommand(cmd)
+var postClarCommand = &cobra.Command{
+	Use:   "post-clar [text]",
+	Short: "Post a clarification",
+	Args:  cobra.ExactValidArgs(1),
+	RunE:  postClarification,
 }
 
 func postClarification(cmd *cobra.Command, args []string) error {

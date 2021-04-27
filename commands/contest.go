@@ -7,15 +7,12 @@ import (
 	interactor "github.com/tuupke/api-interactor"
 )
 
-func init() {
-	cmd := &cobra.Command{
-		Use:   "contest",
-		Short: "Get contests",
-		RunE:  fetchContests,
-	}
-
-	rootCommand.AddCommand(cmd)
+var contestCommand = &cobra.Command{
+	Use:   "contest",
+	Short: "Get contests",
+	RunE:  fetchContests,
 }
+
 
 func fetchContests(cmd *cobra.Command, args []string) error {
 	if baseUrl == "" {
@@ -38,6 +35,6 @@ func fetchContests(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not retrieve contests; %w", err)
 	}
 
-	_, err = fmt.Fprint(cmd.OutOrStdout(), c)
-	return err
+	fmt.Println(c)
+	return nil
 }
