@@ -5,6 +5,7 @@ import (
 	"github.com/kirsle/configdir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 	"path/filepath"
 )
 
@@ -48,7 +49,16 @@ Note that if the [-b/--baseurl], [-c/--contest], [-i/--insecure], [-p/--password
 are not supplied, they are read from the configuration file (%s)`, rootCommand.Short, configFile())
 
 	// Set viper path and file
-	viper.AddConfigPath(configdir.LocalConfig(configFolder))
+	configDir := configdir.LocalConfig(configFolder)
+
+	// Ensure config path exists
+	err := configdir.MakePath(configDir)
+	if err != nil {
+		fmt.Printf("can not create config folder: %s\n", err)
+		os.Exit(1)
+	}
+
+	viper.AddConfigPath(configDir)
 	viper.SetConfigName(configName)
 	viper.SetConfigType(configType)
 
