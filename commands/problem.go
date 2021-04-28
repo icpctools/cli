@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
 	interactor "github.com/tuupke/api-interactor"
@@ -15,14 +16,14 @@ var problemCommand = &cobra.Command{
 }
 
 func fetchProblems(cmd *cobra.Command, args []string) error {
-	if baseUrl == "" {
+	if viper.GetString("baseurl") == "" {
 		return errors.New("no base URL provided in flag or config")
 	}
-	if contestId == "" {
+	if viper.GetString("contest") == "" {
 		return errors.New("no contest ID provided in flag or config")
 	}
 
-	api, err := interactor.ContestInteractor(baseUrl, username, password, contestId, insecure)
+	api, err := interactor.ContestInteractor(viper.GetString("baseurl"), viper.GetString("username"), viper.GetString("password"), viper.GetString("contest"), viper.GetBool("insecure"))
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)
 	}

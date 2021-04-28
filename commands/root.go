@@ -2,19 +2,22 @@ package commands
 
 import (
 	"fmt"
-
+	"github.com/kirsle/configdir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"path/filepath"
+)
 
-	// "github.com/spf13/viper"
-	"tools.icpc.global/contest/config"
+const (
+	configFolder = "icpc"
+	configName   = "settings"
+	configType   = "yaml"
 )
 
 var (
 	rootCommand = &cobra.Command{
-		Use:              "contest",
-		Short:            "A CLI tool for CCS Api access",
-		PersistentPreRun: mergeConfig,
+		Use:   "contest",
+		Short: "A CLI tool for CCS Api access",
 	}
 
 	baseUrl   string
@@ -24,34 +27,10 @@ var (
 	problemId string
 
 	insecure bool
-
-	storedConfig = &config.Config{}
 )
 
 func Execute() error {
 	return rootCommand.Execute()
-}
-
-func mergeConfig(_ *cobra.Command, _ []string) {
-	// Read config from disk
-	storedConfig.ReadConfig()
-
-	// Now merge it into our local config, if local config is empty
-	if baseUrl == "" {
-		baseUrl = storedConfig.BaseUrl
-	}
-	if username == "" {
-		username = storedConfig.Username
-	}
-	if password == "" {
-		password = storedConfig.Password
-	}
-	if contestId == "" {
-		contestId = storedConfig.ContestId
-	}
-	if !insecure {
-		insecure = storedConfig.Insecure
-	}
 }
 
 func init() {
@@ -66,9 +45,14 @@ func init() {
 	rootCommand.Long = fmt.Sprintf(`%s
 
 Note that if the [-b/--baseurl], [-c/--contest], [-i/--insecure], [-p/--password] and [-u/--username] flags
-are not supplied, they are read from the configuration file (%s)`, rootCommand.Short, storedConfig.ConfigFile())
+are not supplied, they are read from the configuration file (%s)`, rootCommand.Short, configFile())
 
-	// Bind all valus
+	// Set viper path and file
+	viper.AddConfigPath(configdir.LocalConfig(configFolder))
+	viper.SetConfigName(configName)
+	viper.SetConfigType(configType)
+
+	// Bind all values
 	allFlags := []string{"baseurl", "username", "password", "contest", "insecure"}
 	for _, flag := range allFlags {
 		if err := viper.BindPFlag(flag, rootCommand.PersistentFlags().Lookup(flag)); err != nil {
@@ -77,13 +61,30 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 		}
 	}
 
-	// Register the contests command
+	// Read in viper config
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			// TODO replace this with a better method
+			panic(err)
+		}
+	}
+
+	// Register the subcommands
 	addSub(rootCommand, contestCommand, "baseurl")
 	addSub(rootCommand, postClarCommand, "baseurl", "contest")
 	addSub(rootCommand, problemCommand, "baseurl", "contest")
+	addSub(rootCommand, loginCommand)
+	addSub(rootCommand, logoutCommand)
+	addSub(rootCommand, setCommand)
+	addSub(setCommand, setUrlCommand)
+	addSub(setCommand, setIdCommand)
 }
 
 func addSub(root, sub *cobra.Command, requiredFlags ...string) {
+	// TODO: contest and baseurl are now required for all commands, not only the three we want them to have
+
+	// TODO: contest and baseurl are required even if they appear in the config file. This should not be the case
+
 	sub.PersistentFlags().AddFlagSet(root.PersistentFlags())
 	sub.Flags().AddFlagSet(root.Flags())
 	root.AddCommand(sub)
@@ -94,4 +95,8 @@ func addSub(root, sub *cobra.Command, requiredFlags ...string) {
 			panic(err)
 		}
 	}
+}
+
+func configFile() string {
+	return fmt.Sprintf("%s.%s", filepath.Join(configdir.LocalConfig(configFolder), configName), configType)
 }
