@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
-	interactor "github.com/tuupke/api-interactor"
 )
 
 var postClarCommand = &cobra.Command{
@@ -25,7 +24,7 @@ func postClarification(cmd *cobra.Command, args []string) error {
 		return errors.New("no contest ID provided in flag or config")
 	}
 
-	api, err := interactor.ContestInteractor(viper.GetString("baseurl"), viper.GetString("username"), viper.GetString("password"), viper.GetString("contest"), viper.GetBool("insecure"))
+	api, err := contestApi()
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)
 	}

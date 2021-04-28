@@ -5,6 +5,7 @@ import (
 	"github.com/kirsle/configdir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	interactor "github.com/tuupke/api-interactor"
 	"os"
 	"path/filepath"
 )
@@ -117,4 +118,25 @@ func configHelper(requiredFlags ...string) func(cmd *cobra.Command, args []strin
 
 func configFile() string {
 	return fmt.Sprintf("%s.%s", filepath.Join(configdir.LocalConfig(configFolder), configName), configType)
+}
+
+// contestApi attempts to load a interactor.ContestApi from the config currently stored in viper.
+func contestApi() (interactor.ContestApi, error) {
+	return interactor.ContestInteractor(
+		viper.GetString("baseurl"),
+		viper.GetString("username"),
+		viper.GetString("password"),
+		viper.GetString("contest"),
+		viper.GetBool("insecure"),
+	)
+}
+
+// contestsApi attempts to load a interactor.ContestsApi from the config currently stored in viper.
+func contestsApi() (interactor.ContestsApi, error) {
+	return interactor.ContestsInteractor(
+		viper.GetString("baseurl"),
+		viper.GetString("username"),
+		viper.GetString("password"),
+		viper.GetBool("insecure"),
+	)
 }
