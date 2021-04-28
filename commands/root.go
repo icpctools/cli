@@ -63,7 +63,7 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	viper.SetConfigType(configType)
 
 	// Bind all values
-	allFlags := []string{"baseurl", "username", "password", "contest", "insecure"}
+	allFlags := []string{"baseurl", "username", "password", "contest", "insecure", "problem"}
 	for _, flag := range allFlags {
 		if err := viper.BindPFlag(flag, rootCommand.PersistentFlags().Lookup(flag)); err != nil {
 			// TODO replace this with a better method
@@ -80,30 +80,38 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	}
 
 	// Register the subcommands
-	addSub(rootCommand, contestCommand, "baseurl")
-	addSub(rootCommand, postClarCommand, "baseurl", "contest")
-	addSub(rootCommand, problemCommand, "baseurl", "contest")
-	addSub(rootCommand, loginCommand)
-	addSub(rootCommand, logoutCommand)
-	addSub(rootCommand, setCommand)
-	addSub(setCommand, setUrlCommand)
-	addSub(setCommand, setIdCommand)
+	rootCommand.AddCommand(contestCommand)
+	rootCommand.AddCommand(postClarCommand)
+	rootCommand.AddCommand(problemCommand)
+	rootCommand.AddCommand(loginCommand)
+	rootCommand.AddCommand(logoutCommand)
+	rootCommand.AddCommand(setCommand)
+	rootCommand.AddCommand(setUrlCommand)
+	rootCommand.AddCommand(setIdCommand)
 }
 
-func addSub(root, sub *cobra.Command, requiredFlags ...string) {
-	// TODO: contest and baseurl are now required for all commands, not only the three we want them to have
+// configHelper can be used to register which flags must exist. An error is thrown when a required flag is not present
+// or set in through viper. If a flag is provided it will override the value stored in viper, such that its interface
+// can be used to retrieve all config.
+func configHelper(requiredFlags ...string) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, flag := range requiredFlags {
+			f := cmd.Flag(flag)
+			if f != nil && f.Changed {
+				viper.Set(flag, f.Value)
+				continue
+			}
 
-	// TODO: contest and baseurl are required even if they appear in the config file. This should not be the case
+			if viper.Get(flag) != nil {
+				fmt.Println(flag, viper.Get(flag))
+				continue
+			}
 
-	sub.PersistentFlags().AddFlagSet(root.PersistentFlags())
-	sub.Flags().AddFlagSet(root.Flags())
-	root.AddCommand(sub)
-
-	for _, flag := range requiredFlags {
-		if err := sub.MarkPersistentFlagRequired(flag); err != nil {
-			// TODO better error handling, though this is not recoverable
-			panic(err)
+			// Neither flag, nor value exists, exiting
+			return fmt.Errorf("missing flag: '--%v'", flag)
 		}
+
+		return nil
 	}
 }
 

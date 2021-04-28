@@ -10,10 +10,11 @@ import (
 )
 
 var postClarCommand = &cobra.Command{
-	Use:   "post-clar [text]",
-	Short: "Post a clarification",
-	Args:  cobra.ExactValidArgs(1),
-	RunE:  postClarification,
+	Use:     "post-clar [text]",
+	Short:   "Post a clarification",
+	Args:    cobra.ExactValidArgs(1),
+	RunE:    postClarification,
+	PreRunE: configHelper("baseurl", "contest"),
 }
 
 func postClarification(cmd *cobra.Command, args []string) error {

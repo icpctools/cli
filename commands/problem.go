@@ -10,9 +10,10 @@ import (
 )
 
 var problemCommand = &cobra.Command{
-	Use:   "problem",
-	Short: "Get problems",
-	RunE:  fetchProblems,
+	Use:     "problem",
+	Short:   "Get problems",
+	RunE:    fetchProblems,
+	PreRunE: configHelper("baseurl", "contest"),
 }
 
 func fetchProblems(cmd *cobra.Command, args []string) error {
