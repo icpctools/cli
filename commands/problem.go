@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,16 @@ func fetchProblems(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not retrieve problems; %w", err)
 	}
 
-	_, err = fmt.Fprint(cmd.OutOrStdout(), p)
-	return err
+	// sort by ordinal
+ 	sort.Slice(p, func(i, j int) bool {
+ 		return p[i].Ordinal < p[j].Ordinal
+ 	})
+
+ 	// output
+ 	fmt.Printf("Problems (%d):\n", len(p))
+ 	for _, o := range p {
+ 		fmt.Printf(" %3s: %s\n", o.Label, o.Name)
+ 	}
+
+ 	return nil
 }
