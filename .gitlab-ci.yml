@@ -1,17 +1,46 @@
 ---
 # GitLab build configuration
 
+image: tuupke/golang:1.16
+
 stages:
+  - test
   - build
 
-build:
-  image: golang:1.16
-  stage: build
+test:
+  stage: test
   needs: []
-  rules:
-    - if: '$CI_COMMIT_REF_NAME != "HEAD"'
-      when: on_success
-    - when: never
+  script:
+    - go test -count=1 ./...
+
+vet:
+  stage: test
+  needs: []
+  script:
+    - go vet ./...
+
+staticcheck:
+  stage: test
+  needs: []
+  script:
+    - staticcheck ./...
+
+format:
+  stage: test
+  needs: []
+  script:
+    - gofmt -d . > format.patch
+    - DIFF=$(cat format.patch)
+    - |
+      if [[ $DIFF != "" ]];
+      then
+        cat format.patch;
+        exit 1;
+      fi
+
+build:
+  stage: build
+  needs: [test, vet, staticcheck, format]
   script:
     - go build
     - |
@@ -33,3 +62,5 @@ build:
     paths:
       - contest-${GOOS}-${GOARCH}.tar.gz
     expire_in: 1 month
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
