@@ -11,7 +11,7 @@ test:
   stage: test
   needs: []
   script:
-    - go test -count=1 ./...
+    - go test -count=1 -v ./...
 
 vet:
   stage: test
