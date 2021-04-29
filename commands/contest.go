@@ -1,10 +1,8 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var contestCommand = &cobra.Command{
@@ -14,10 +12,6 @@ var contestCommand = &cobra.Command{
 }
 
 func fetchContests(cmd *cobra.Command, args []string) error {
-	if viper.GetString("baseurl") == "" {
-		return errors.New("no base URL provided in flag or config")
-	}
-
 	api, err := contestsApi()
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)

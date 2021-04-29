@@ -8,6 +8,7 @@ import (
 	interactor "github.com/tuupke/api-interactor"
 	"os"
 	"path/filepath"
+	"reflect"
 )
 
 const (
@@ -22,12 +23,15 @@ var (
 		Short: "A CLI tool for CCS Api access",
 	}
 
-	baseUrl   string
-	username  string
-	password  string
-	contestId string
-	problemId string
+	baseUrl    string
+	username   string
+	password   string
+	contestId  string
+	problemId  string
+	languageId string
+	entryPoint string
 
+	force    bool
 	insecure bool
 )
 
@@ -42,7 +46,14 @@ func init() {
 	rootCommand.PersistentFlags().StringVarP(&password, "password", "p", "", "password to communicate with the API")
 	rootCommand.PersistentFlags().StringVarP(&contestId, "contest", "c", "", "contest ID to use")
 	rootCommand.PersistentFlags().BoolVarP(&insecure, "insecure", "i", false, "whether to allow insecure HTTPS connections")
-	rootCommand.PersistentFlags().StringVar(&problemId, "problem", "", "problem ID to post a clarification for. Leave empty for general clarification")
+
+	// Command specific flags
+	postClarCommand.Flags().StringVar(&problemId, "problem", "", "problem ID to post a clarification for. Leave empty for general clarification")
+
+	submitCommand.Flags().StringVar(&problemId, "problem", "", "problem ID to submit for. Leave empty to auto detect from first file")
+	submitCommand.Flags().StringVarP(&languageId, "language", "l", "", "language ID to submit for. Leave empty to auto detect from first file")
+	submitCommand.Flags().StringVarP(&entryPoint, "entry-point", "e", "", "entry point to use. Leave empty if not needed or to auto detect")
+	submitCommand.Flags().BoolVarP(&force, "force", "f", false, "whether to force submission (i.e. not ask for confirmation")
 
 	rootCommand.Long = fmt.Sprintf(`%s
 
@@ -64,7 +75,7 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	viper.SetConfigType(configType)
 
 	// Bind all values
-	allFlags := []string{"baseurl", "username", "password", "contest", "insecure", "problem"}
+	allFlags := []string{"baseurl", "username", "password", "contest", "insecure"}
 	for _, flag := range allFlags {
 		if err := viper.BindPFlag(flag, rootCommand.PersistentFlags().Lookup(flag)); err != nil {
 			// TODO replace this with a better method
@@ -87,8 +98,9 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	rootCommand.AddCommand(loginCommand)
 	rootCommand.AddCommand(logoutCommand)
 	rootCommand.AddCommand(setCommand)
-	rootCommand.AddCommand(setUrlCommand)
-	rootCommand.AddCommand(setIdCommand)
+	setCommand.AddCommand(setUrlCommand)
+	setCommand.AddCommand(setIdCommand)
+	rootCommand.AddCommand(submitCommand)
 }
 
 // configHelper can be used to register which flags must exist. An error is thrown when a required flag is not present
@@ -103,8 +115,7 @@ func configHelper(requiredFlags ...string) func(cmd *cobra.Command, args []strin
 				continue
 			}
 
-			if viper.Get(flag) != nil {
-				fmt.Println(flag, viper.Get(flag))
+			if viper.IsSet(flag) && !reflect.ValueOf(viper.Get(flag)).IsZero() {
 				continue
 			}
 

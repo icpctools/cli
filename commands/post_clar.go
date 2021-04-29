@@ -1,10 +1,7 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
-	"github.com/spf13/viper"
-
 	"github.com/spf13/cobra"
 )
 
@@ -17,13 +14,6 @@ var postClarCommand = &cobra.Command{
 }
 
 func postClarification(cmd *cobra.Command, args []string) error {
-	if viper.GetString("baseurl") == "" {
-		return errors.New("no base URL provided in flag or config")
-	}
-	if viper.GetString("contest") == "" {
-		return errors.New("no contest ID provided in flag or config")
-	}
-
 	api, err := contestApi()
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)

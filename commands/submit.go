@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Songmu/prompter"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	interactor "github.com/tuupke/api-interactor"
 	"os"
 	"path/filepath"
@@ -12,36 +13,21 @@ import (
 	"unicode"
 )
 
-func init() {
-	cmd := &cobra.Command{
-		Use:   "submit [file1] <file2> <file3> ...",
-		Short: "Submit one or more files",
-		Args:  cobra.MinimumNArgs(1),
-		RunE:  submit,
-	}
-
-	cmd.Flags().StringVar(&problemId, "problem", "", "problem ID to submit for. Leave empty to auto detect from first file")
-	cmd.Flags().StringVarP(&languageId, "language", "l", "", "language ID to submit for. Leave empty to auto detect from first file")
-	cmd.Flags().StringVarP(&entryPoint, "entry-point", "e", "", "entry point to use. Leave empty if not needed or to auto detect")
-	cmd.Flags().BoolVarP(&force, "force", "f", false, "whether to force submission (i.e. not ask for confirmation")
-
-	rootCommand.AddCommand(cmd)
+var submitCommand = &cobra.Command{
+	Use:     "submit [file1] <file2> <file3> ...",
+	Short:   "Submit one or more files",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    submit,
+	PreRunE: configHelper("baseurl", "contest"),
 }
 
 func submit(cmd *cobra.Command, args []string) error {
-	if baseUrl == "" {
-		return errors.New("no base URL provided in flag or config")
-	}
-	if contestId == "" {
-		return errors.New("no contest ID provided in flag or config")
-	}
-
-	api, err := interactor.ContestInteractor(baseUrl, username, password, contestId, insecure)
+	api, err := contestApi()
 	if err != nil {
 		return fmt.Errorf("could not connect to the API; %w", err)
 	}
 
-	contest, err := api.ContestById(contestId)
+	contest, err := api.ContestById(viper.GetString("contest"))
 	if err != nil {
 		return fmt.Errorf("could not get contest; %w", err)
 	}
@@ -130,7 +116,7 @@ func submit(cmd *cobra.Command, args []string) error {
 			parts := strings.Split(filepath.Base(args[0]), ".")
 			entryPoint = parts[0]
 		case "python", "python2", "python3":
-			// go has no automatic falltrough, either keyword `fallthrough` must be used, or a combined case should be presented
+			// go has no automatic fallthrough, either keyword `fallthrough` must be used, or a combined case should be presented
 			// Python: use first file
 			entryPoint = filepath.Base(args[0])
 		case "kotlin":
