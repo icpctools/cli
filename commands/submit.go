@@ -3,14 +3,15 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"github.com/Songmu/prompter"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	interactor "github.com/tuupke/api-interactor"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	"github.com/Songmu/prompter"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	interactor "github.com/tuupke/api-interactor"
 )
 
 var submitCommand = &cobra.Command{
@@ -19,6 +20,43 @@ var submitCommand = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    submit,
 	PreRunE: configHelper("baseurl", "contest"),
+}
+
+type (
+	problemSet  []interactor.Problem
+	languageSet []interactor.Language
+)
+
+func (p problemSet) byId(id string) (interactor.Problem, bool) {
+	for _, problem := range p {
+		if strings.EqualFold(problem.Id, id) || strings.EqualFold(problem.Label, id) {
+			return problem, true
+		}
+	}
+
+	return interactor.Problem{}, false
+}
+
+func (l languageSet) byId(id string) (interactor.Language, bool) {
+	for _, language := range l {
+		if language.Id == id {
+			return language, true
+		}
+	}
+
+	return interactor.Language{}, false
+}
+
+func (l languageSet) byExtension(extension string) (interactor.Language, bool) {
+	for _, language := range l {
+		for _, languageExtension := range language.Extensions {
+			if strings.ToLower(languageExtension) == extension {
+				return language, true
+			}
+		}
+	}
+
+	return interactor.Language{}, false
 }
 
 func submit(cmd *cobra.Command, args []string) error {
@@ -71,40 +109,20 @@ func submit(cmd *cobra.Command, args []string) error {
 		}
 
 		if languageId == "" {
-		languageLoop:
-			for _, language := range languages {
-				for _, languageExtension := range language.Extensions {
-					if strings.ToLower(languageExtension) == extension {
-						languageId = language.Id
-						break languageLoop
-					}
-				}
+			if language, found := languageSet(languages).byExtension(extension); found {
+				languageId = language.Id
 			}
 		}
 	}
 
-	var problem *interactor.Problem
-	var language *interactor.Language
+	problem, hasProblem := problemSet(problems).byId(problemId)
+	language, hasLanguage := languageSet(languages).byId(languageId)
 
-	for _, p := range problems {
-		if strings.EqualFold(p.Id, problemId) || strings.EqualFold(p.Label, problemId) {
-			problem = &p
-			break
-		}
-	}
-
-	for _, l := range languages {
-		if l.Id == languageId {
-			language = &l
-			break
-		}
-	}
-
-	if problem == nil {
+	if !hasProblem {
 		return fmt.Errorf("no known problem specified or detected")
 	}
 
-	if language == nil {
+	if !hasLanguage {
 		return fmt.Errorf("no known language specified or detected")
 	}
 
@@ -116,7 +134,6 @@ func submit(cmd *cobra.Command, args []string) error {
 			parts := strings.Split(filepath.Base(args[0]), ".")
 			entryPoint = parts[0]
 		case "python", "python2", "python3":
-			// go has no automatic fallthrough, either keyword `fallthrough` must be used, or a combined case should be presented
 			// Python: use first file
 			entryPoint = filepath.Base(args[0])
 		case "kotlin":
