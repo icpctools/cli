@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,7 +15,7 @@ var setCommand = &cobra.Command{
 
 var setUrlCommand = &cobra.Command{
 	Use:                   "url [url]",
-	Short:                 "Store base URL",
+	Short:                 "Set base URL",
 	Args:                  cobra.ExactArgs(1),
 	DisableFlagsInUseLine: true,
 	RunE:                  setUrl,
@@ -22,7 +23,7 @@ var setUrlCommand = &cobra.Command{
 
 var setIdCommand = &cobra.Command{
 	Use:                   "id [id]",
-	Short:                 "Store contest Id",
+	Short:                 "Set contest ID",
 	Args:                  cobra.ExactArgs(1),
 	DisableFlagsInUseLine: true,
 	RunE:                  setId,
@@ -34,7 +35,7 @@ func setUrl(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Successfully written config to %s\n", configFile())
+	fmt.Printf("Base URL set to %s.\n", args[0])
 	return nil
 }
 
@@ -44,6 +45,6 @@ func setId(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Successfully written config to %s\n", configFile())
+	fmt.Printf("Contest ID set to %s.\n", args[0])
 	return nil
 }
