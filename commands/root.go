@@ -95,12 +95,15 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	rootCommand.AddCommand(contestCommand)
 	rootCommand.AddCommand(postClarCommand)
 	rootCommand.AddCommand(problemCommand)
-	rootCommand.AddCommand(loginCommand)
-	rootCommand.AddCommand(logoutCommand)
-	rootCommand.AddCommand(setCommand)
-	setCommand.AddCommand(setUrlCommand)
-	setCommand.AddCommand(setIdCommand)
 	rootCommand.AddCommand(submitCommand)
+
+	// Add all config commands
+	rootCommand.AddCommand(configCommand)
+	configCommand.AddCommand(configListCommand)
+	configCommand.AddCommand(configDeleteCommand)
+	configCommand.AddCommand(configSetCommand)
+	configCommand.AddCommand(loginCommand)
+	configCommand.AddCommand(logoutCommand)
 }
 
 // configHelper can be used to register which flags must exist. An error is thrown when a required flag is not present
