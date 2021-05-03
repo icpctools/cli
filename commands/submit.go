@@ -29,7 +29,7 @@ type (
 
 func (p problemSet) byId(id string) (interactor.Problem, bool) {
 	for _, problem := range p {
-		if strings.EqualFold(problem.Id, id) || strings.EqualFold(problem.Label, id) {
+		if strings.EqualFold(problem.Id, id) || strings.EqualFold(problem.Label, id) || strings.EqualFold(problem.Name, id) {
 			return problem, true
 		}
 	}
