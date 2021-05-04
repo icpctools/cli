@@ -16,7 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tuupke/api-interactor v0.0.0-20210428200732-71c16d198e15
+	github.com/tuupke/api-interactor v0.0.0-20210503195646-d6eacdbff333
 	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
 	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
 	golang.org/x/text v0.3.6 // indirect
