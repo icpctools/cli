@@ -19,7 +19,7 @@ var submitCommand = &cobra.Command{
 	Short:   "Submit one or more files",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    submit,
-	PreRunE: configHelper("baseurl", "contest"),
+	PreRunE: configHelper("baseurl"),
 }
 
 type (

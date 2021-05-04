@@ -2,15 +2,16 @@ package commands
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"sort"
+
+	"github.com/spf13/cobra"
 )
 
 var problemCommand = &cobra.Command{
 	Use:     "problem",
 	Short:   "Get problems",
 	RunE:    fetchProblems,
-	PreRunE: configHelper("baseurl", "contest"),
+	PreRunE: configHelper("baseurl"),
 }
 
 func fetchProblems(cmd *cobra.Command, args []string) error {

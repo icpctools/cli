@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +11,7 @@ var postClarCommand = &cobra.Command{
 	Short:   "Post a clarification",
 	Args:    cobra.ExactValidArgs(1),
 	RunE:    postClarification,
-	PreRunE: configHelper("baseurl", "contest"),
+	PreRunE: configHelper("baseurl"),
 }
 
 func postClarification(cmd *cobra.Command, args []string) error {

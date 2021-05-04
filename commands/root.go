@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
+	"time"
 
 	"github.com/kirsle/configdir"
 	"github.com/spf13/cobra"
@@ -93,6 +96,8 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	}
 
 	// Register the subcommands
+	setCommand.AddCommand(setUrlCommand)
+	setCommand.AddCommand(setIdCommand)
 	rootCommand.AddCommand(contestCommand)
 	rootCommand.AddCommand(clarCommand)
 	rootCommand.AddCommand(postClarCommand)
@@ -100,8 +105,6 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	rootCommand.AddCommand(loginCommand)
 	rootCommand.AddCommand(logoutCommand)
 	rootCommand.AddCommand(setCommand)
-	setCommand.AddCommand(setUrlCommand)
-	setCommand.AddCommand(setIdCommand)
 	rootCommand.AddCommand(submitCommand)
 }
 
@@ -135,11 +138,31 @@ func configFile() string {
 
 // contestApi attempts to load a interactor.ContestApi from the config currently stored in viper.
 func contestApi() (interactor.ContestApi, error) {
+	contest := viper.GetString("contest")
+	if contest == "" {
+		api, err := contestsApi()
+		if err != nil {
+			return nil, fmt.Errorf("could not connect to the API; %w", err)
+		}
+
+		c, err := api.Contests()
+		if err != nil {
+			return nil, fmt.Errorf("could not retrieve contests; %w", err)
+		}
+
+		best, err := contestSet(c).bestContest()
+		if err != nil {
+			return nil, fmt.Errorf("could not pick the best contest; %w", err)
+		} else {
+			fmt.Printf("Automatically connecting to contest: %s\n", best.Name)
+			contest = best.Id
+		}
+	}
 	return interactor.ContestInteractor(
 		viper.GetString("baseurl"),
 		viper.GetString("username"),
 		viper.GetString("password"),
-		viper.GetString("contest"),
+		contest,
 		viper.GetBool("insecure"),
 	)
 }
@@ -152,4 +175,74 @@ func contestsApi() (interactor.ContestsApi, error) {
 		viper.GetString("password"),
 		viper.GetBool("insecure"),
 	)
+}
+
+type (
+	contestSet []interactor.Contest
+)
+
+func (c contestSet) bestContest() (interactor.Contest, error) {
+	var best interactor.Contest
+
+	// simple cases - no contests or only one
+	if len(c) == 0 {
+		return best, fmt.Errorf("no contests found")
+	}
+	if len(c) == 1 {
+		return c[0], nil
+	}
+
+	// ok, there are at least two contests
+	// if there is only one contest running, pick it
+	var count int
+	var unscheduled int
+	now := time.Now()
+	for _, contest := range c {
+		if contest.StartTime == (interactor.ApiTime{}) {
+			unscheduled++
+		}
+		if contest.StartTime.Time().Before(now) && contest.StartTime.Time().Add(time.Duration(contest.Duration)).After(now) {
+			best = contest
+			count++
+		}
+	}
+
+	if count == 1 {
+		return best, nil
+	} else if count == 2 {
+		return interactor.Contest{}, errors.New("more than one contest is currently running")
+	}
+	if unscheduled == len(c) {
+		return interactor.Contest{}, errors.New("there are no scheduled contests")
+	}
+
+	// if there is only one contest today, pick it
+	count = 0
+	for _, contest := range c {
+		if dateEqual(contest.StartTime.Time(), now) {
+			best = contest
+			count++
+		}
+	}
+
+	if count == 1 {
+		return best, nil
+	}
+
+	// if all contests are in the future, pick the first one
+	sort.Slice(c, func(i, j int) bool {
+		return c[i].StartTime.Time().Before(c[j].StartTime.Time())
+	})
+	if c[0].StartTime != (interactor.ApiTime{}) && c[0].StartTime.Time().After(now) {
+		return c[0], nil
+	}
+
+	// ok, so all contests are done. just pick the last one
+	return c[len(c)-1], nil
+}
+
+func dateEqual(date1, date2 time.Time) bool {
+	y1, m1, d1 := date1.Date()
+	y2, m2, d2 := date2.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
 }
