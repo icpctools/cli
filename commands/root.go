@@ -2,13 +2,14 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"reflect"
+
 	"github.com/kirsle/configdir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	interactor "github.com/tuupke/api-interactor"
-	"os"
-	"path/filepath"
-	"reflect"
 )
 
 const (
@@ -93,6 +94,7 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 
 	// Register the subcommands
 	rootCommand.AddCommand(contestCommand)
+	rootCommand.AddCommand(clarCommand)
 	rootCommand.AddCommand(postClarCommand)
 	rootCommand.AddCommand(problemCommand)
 	rootCommand.AddCommand(loginCommand)
