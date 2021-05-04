@@ -209,7 +209,7 @@ func (c contestSet) bestContest() (interactor.Contest, error) {
 
 	if count == 1 {
 		return best, nil
-	} else if count == 2 {
+	} else if count >= 2 {
 		return interactor.Contest{}, errors.New("more than one contest is currently running")
 	}
 	if unscheduled == len(c) {
