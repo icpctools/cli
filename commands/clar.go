@@ -11,7 +11,7 @@ var clarCommand = &cobra.Command{
 	Use:     "clar",
 	Short:   "Get clarifications",
 	RunE:    fetchClars,
-	PreRunE: configHelper("baseurl", "contest"),
+	PreRunE: configHelper("baseurl"),
 }
 
 func fetchClars(cmd *cobra.Command, args []string) error {
