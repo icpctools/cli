@@ -3,14 +3,36 @@ package commands
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/spf13/cobra"
+	interactor "github.com/tuupke/api-interactor"
 )
 
 var contestCommand = &cobra.Command{
 	Use:   "contest",
 	Short: "Get contests",
 	RunE:  fetchContests,
+}
+
+func outputContest(c interactor.Contest) {
+	fmt.Printf(" %10s: %s\n", c.Id, c.Name)
+	if c.StartTime == (interactor.ApiTime{}) {
+		if c.CountdownTime != interactor.ApiRelTime(0) {
+			fmt.Printf("             %v (countdown paused at %s)\n", c.Duration, c.CountdownTime)
+		} else {
+			fmt.Printf("             %v (not scheduled)\n", c.Duration)
+		}
+	} else {
+		now := time.Now()
+		if c.StartTime.Time().After(now) {
+			fmt.Printf("             %v starting at %v\n", c.Duration, c.StartTime)
+		} else if (c.StartTime.Time().Add(c.Duration.Duration())).After(now) {
+			fmt.Printf("             Contest running. %v started at %v\n", c.Duration, c.StartTime)
+		} else {
+			fmt.Printf("             Contest over. Started at %v\n", c.StartTime)
+		}
+	}
 }
 
 func fetchContests(cmd *cobra.Command, args []string) error {
@@ -26,8 +48,7 @@ func fetchContests(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not retrieve contest; %w", err)
 		}
 
-		fmt.Printf(" %10s: %s\n", c.Id, c.Name)
-		fmt.Printf("             %v starting at %v\n", c.Duration, c.StartTime)
+		outputContest(c)
 	} else {
 		c, err := api.Contests()
 
@@ -43,8 +64,7 @@ func fetchContests(cmd *cobra.Command, args []string) error {
 		// output
 		fmt.Printf("Contests (%d):\n", len(c))
 		for _, o := range c {
-			fmt.Printf(" %10s: %s\n", o.Id, o.Name)
-			fmt.Printf("             %v starting at %v\n", o.Duration, o.StartTime)
+			outputContest(o)
 		}
 	}
 
