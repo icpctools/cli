@@ -107,6 +107,7 @@ are not supplied, they are read from the configuration file (%s)`, rootCommand.S
 	rootCommand.AddCommand(setCommand)
 	rootCommand.AddCommand(submitCommand)
 	rootCommand.AddCommand(submissionsCommand)
+	rootCommand.AddCommand(scoreboardCommand)
 }
 
 // configHelper can be used to register which flags must exist. An error is thrown when a required flag is not present

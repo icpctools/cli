@@ -19,6 +19,7 @@ var submissionsCommand = &cobra.Command{
 type (
 	judgementTypeSet []interactor.JudgementType
 	judgementSet     []interactor.Judgement
+	teamSet          []interactor.Team
 )
 
 func (j judgementTypeSet) byId(id string) (interactor.JudgementType, bool) {
@@ -29,6 +30,16 @@ func (j judgementTypeSet) byId(id string) (interactor.JudgementType, bool) {
 	}
 
 	return interactor.JudgementType{}, false
+}
+
+func (t teamSet) byId(id string) (interactor.Team, bool) {
+	for _, team := range t {
+		if team.Id == id {
+			return team, true
+		}
+	}
+
+	return interactor.Team{}, false
 }
 
 func (j judgementSet) bySubmissionId(id string) (judgementSet, bool) {
