@@ -21,7 +21,6 @@ func fetchProblems(cmd *cobra.Command, args []string) error {
 	}
 
 	p, err := api.Problems()
-
 	if err != nil {
 		return fmt.Errorf("could not retrieve problems; %w", err)
 	}
@@ -32,10 +31,15 @@ func fetchProblems(cmd *cobra.Command, args []string) error {
 	})
 
 	// output
-	fmt.Printf("Problems (%d):\n", len(p))
+	fmt.Printf("\nProblems (%d):\n", len(p))
+
+	var table = Table{}
+	table.Header = []string{"Label", "Name"}
+	table.Align = []int{ALIGN_LEFT, ALIGN_LEFT}
 	for _, o := range p {
-		fmt.Printf(" %3s: %s\n", o.Label, o.Name)
+		table.appendRow([]string{o.Label, o.Name})
 	}
+	table.print()
 
 	return nil
 }
