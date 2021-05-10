@@ -22,43 +22,6 @@ var submitCommand = &cobra.Command{
 	PreRunE: configHelper("baseurl"),
 }
 
-type (
-	problemSet  []interactor.Problem
-	languageSet []interactor.Language
-)
-
-func (p problemSet) byId(id string) (interactor.Problem, bool) {
-	for _, problem := range p {
-		if strings.EqualFold(problem.Id, id) || strings.EqualFold(problem.Label, id) || strings.EqualFold(problem.Name, id) {
-			return problem, true
-		}
-	}
-
-	return interactor.Problem{}, false
-}
-
-func (l languageSet) byId(id string) (interactor.Language, bool) {
-	for _, language := range l {
-		if language.Id == id {
-			return language, true
-		}
-	}
-
-	return interactor.Language{}, false
-}
-
-func (l languageSet) byExtension(extension string) (interactor.Language, bool) {
-	for _, language := range l {
-		for _, languageExtension := range language.Extensions {
-			if strings.ToLower(languageExtension) == extension {
-				return language, true
-			}
-		}
-	}
-
-	return interactor.Language{}, false
-}
-
 func submit(cmd *cobra.Command, args []string) error {
 	api, err := contestApi()
 	if err != nil {
