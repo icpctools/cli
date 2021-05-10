@@ -24,6 +24,10 @@ var scoreboardCommand = &cobra.Command{
 	PreRunE: configHelper("baseurl"),
 }
 
+func (table *Table) appendRow(row []string) {
+	table.Rows = append(table.Rows, row)
+}
+
 func (table Table) print() error {
 	// determine the amount of padding needed
 	var numCol = len(table.Header)
@@ -49,14 +53,14 @@ func (table Table) print() error {
 	// create format for each column, respecting width and alignment
 	for i := range table.Header {
 		if table.Align[i] == ALIGN_LEFT {
-			format[i] = fmt.Sprintf("  %%-%vv", maxLength[i])
+			format[i] = fmt.Sprintf(" %%-%vv ", maxLength[i])
 		} else {
-			format[i] = fmt.Sprintf("  %%%vv", maxLength[i])
+			format[i] = fmt.Sprintf(" %%%vv ", maxLength[i])
 		}
 	}
 
 	// output header bold and underlined
-	fmt.Printf("\033[1;4m")
+	fmt.Printf("  \033[1;4m")
 	for i, k := range table.Header {
 		fmt.Printf(format[i], k)
 	}
@@ -64,6 +68,7 @@ func (table Table) print() error {
 
 	// output each cell
 	for _, r := range table.Rows {
+		fmt.Printf("  ")
 		for i, s := range r {
 			fmt.Printf(format[i], s)
 		}
@@ -106,7 +111,11 @@ func scoreboard(cmd *cobra.Command, args []string) error {
 	table.Align = append(table.Align, ALIGN_RIGHT, ALIGN_RIGHT)
 	for _, r := range sc.Rows {
 		team, _ := teamSet(t).byId(string(r.TeamId))
-		var row = []string{fmt.Sprintf("%d", r.Rank), team.Id + ": " + team.Name}
+		var name = team.Name
+		if team.DisplayName != "" {
+			name = team.DisplayName
+		}
+		var row = []string{fmt.Sprintf("%d", r.Rank), team.Id + ": " + name}
 
 		for _, p := range problems {
 			var solved bool
@@ -123,7 +132,7 @@ func scoreboard(cmd *cobra.Command, args []string) error {
 		}
 
 		row = append(row, fmt.Sprintf("%d", r.Score.NumSolved), fmt.Sprintf("%v", r.Score.TotalTime))
-		table.Rows = append(table.Rows, row)
+		table.appendRow(row)
 	}
 
 	table.print()
