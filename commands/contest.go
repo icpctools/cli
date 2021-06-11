@@ -50,7 +50,7 @@ func fetchContests(cmd *cobra.Command, args []string) error {
 
 	var table = Table{}
 	table.Header = []string{"Id", "Name", "Start Time", "Length", "Status"}
-	table.Align = []int{ALIGN_LEFT, ALIGN_LEFT, ALIGN_LEFT, ALIGN_LEFT, ALIGN_LEFT}
+	table.Align = []int{ALIGN_LEFT, ALIGN_LEFT, ALIGN_LEFT, ALIGN_RIGHT, ALIGN_LEFT}
 	if contestId != "" {
 		c, err := api.ContestById(contestId)
 
