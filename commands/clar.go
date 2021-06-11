@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/spf13/cobra"
 )
@@ -27,15 +28,21 @@ func fetchClars(cmd *cobra.Command, args []string) error {
 	}
 
 	// output
-	fmt.Printf("Clarifications (%d):\n", len(clars))
+	fmt.Printf("\nClarifications (%d):\n", len(clars))
+
+	var table = Table{}
+	table.Header = []string{"Time", "Type", "Problem", "Text"}
+	table.Align = []int{ALIGN_RIGHT, ALIGN_LEFT, ALIGN_LEFT, ALIGN_LEFT}
 	for _, o := range clars {
+		var kind = ""
 		if o.FromTeamId == "" && o.ToTeamId == "" {
-			fmt.Printf("  Broadcast message from jury at %v", o.ContestTime)
+			kind = "Broadcast message from jury"
 		} else if o.FromTeamId != "" {
-			fmt.Printf("  Clarification sent to jury at %v", o.ContestTime)
+			kind = "Clarification sent to jury"
 		} else {
-			fmt.Printf("  Response from jury at %v", o.ContestTime)
+			kind = "Response from jury"
 		}
+		var prb = ""
 		if o.ProblemId != "" {
 			problems, err := api.Problems()
 			if err != nil {
@@ -44,17 +51,27 @@ func fetchClars(cmd *cobra.Command, args []string) error {
 
 			problem, hasProblem := problemSet(problems).byId(o.ProblemId)
 			if !hasProblem {
-				fmt.Printf(" for unknown problem")
+				prb = "unknown problem"
+			} else {
+				prb = fmt.Sprintf("%s: %s", problem.Label, problem.Name)
 			}
-
-			fmt.Printf(" for problem %s (%s)", problem.Label, problem.Name)
 		}
-		fmt.Printf(":\n")
+		var first = true
+		var time = fmt.Sprintf("%v", o.ContestTime)
 		lines := strings.Split(o.Text, "\n")
 		for _, s := range lines {
-			fmt.Printf("     %s\n", s)
+			s = strings.TrimFunc(s, func(r rune) bool {
+				return !unicode.IsGraphic(r)
+			})
+			if first {
+				first = false
+				table.appendRow([]string{time, kind, prb, s})
+			} else {
+				table.appendRow([]string{"", "", "", s})
+			}
 		}
 	}
+	table.print()
 
 	return nil
 }
