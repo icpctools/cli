@@ -61,25 +61,27 @@ func submissions(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Printf("Submissions (%d):\n", count)
+	fmt.Printf("\nSubmissions (%d):\n", count)
+	var table = Table{}
+	table.Header = []string{"Time", "Problem", "Language", "Judgement Time", "Judgement"}
+	table.Align = []int{ALIGN_RIGHT, ALIGN_LEFT, ALIGN_LEFT, ALIGN_RIGHT, ALIGN_LEFT}
 	for _, s := range submissions {
 		if s.TeamId == teamId {
-			fmt.Printf("  Submission to ")
+			var row = []string{fmt.Sprintf("%v", s.ContestTime)}
 
 			problem, hasProblem := problemSet(problems).byId(s.ProblemId)
 			if hasProblem {
-				fmt.Printf("problem %s: %s", problem.Label, problem.Name)
+				row = append(row, fmt.Sprintf("%s: %s", problem.Label, problem.Name))
 			} else {
-				fmt.Printf("unknown problem")
+				row = append(row, "unknown")
 			}
 
 			language, hasLanguage := languageSet(languages).byId(s.LanguageId)
 			if hasLanguage {
-				fmt.Printf(" in %s", language.Name)
+				row = append(row, language.Name)
 			} else {
-				fmt.Printf(" in unknown language")
+				row = append(row, "unknown")
 			}
-			fmt.Printf(" at %s\n", s.ContestTime)
 
 			// Get judgement
 			sjudgements, hasJudgements := judgementSet(judgements).bySubmissionId(s.Id)
@@ -88,19 +90,21 @@ func submissions(cmd *cobra.Command, args []string) error {
 					if j.JudgementTypeId != "" {
 						judgementType, hasjudgementType := judgementTypeSet(judgementTypes).byId(j.JudgementTypeId)
 						if hasjudgementType {
-							fmt.Printf("     Judged at %s: %s (%s)\n", j.EndContestTime, judgementType.Id, judgementType.Name)
+							row = append(row, fmt.Sprintf("%v", j.EndContestTime), fmt.Sprintf("%s (%s)", judgementType.Id, judgementType.Name))
 						} else {
-							fmt.Printf("     Unknown judgement at %s\n", j.EndContestTime)
+							row = append(row, fmt.Sprintf("%v", j.EndContestTime), "Unknown judgement")
 						}
 					} else {
-						fmt.Printf("     Judgement in progress\n")
+						row = append(row, fmt.Sprintf("%v", j.StartContestTime), "In progress...")
 					}
-				}
+				} // todo handle multiple
 			} else {
-				fmt.Println("     Not judged")
+				row = append(row, "", "Queued")
 			}
+			table.appendRow(row)
 		}
 	}
+	table.print()
 
 	return nil
 }
