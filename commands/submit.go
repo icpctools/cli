@@ -25,7 +25,7 @@ var submitCommand = &cobra.Command{
 func submit(cmd *cobra.Command, args []string) error {
 	api, err := contestApi()
 	if err != nil {
-		return fmt.Errorf("could not connect to the API; %w", err)
+		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
 	contest, err := api.ContestById(viper.GetString("contest"))
@@ -132,12 +132,12 @@ func submit(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	submissionId, err := api.PostSubmission(problem.Id, language.Id, entryPoint, files)
+	submission, err := api.PostSubmission(problem.Id, language.Id, entryPoint, files)
 	if err != nil {
 		return fmt.Errorf("could not submit: %w", err)
 	}
 
-	fmt.Println("Submitted. ID:", submissionId)
+	fmt.Println("Submittion accepted at ", submission.ContestTime)
 	return nil
 }
 
