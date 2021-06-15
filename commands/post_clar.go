@@ -17,7 +17,7 @@ var postClarCommand = &cobra.Command{
 func postClarification(cmd *cobra.Command, args []string) error {
 	api, err := contestApi()
 	if err != nil {
-		return fmt.Errorf("could not connect to the API; %w", err)
+		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
 	if problemId != "" {
@@ -30,18 +30,17 @@ func postClarification(cmd *cobra.Command, args []string) error {
 		problem, hasProblem := problemSet(problems).byId(problemId)
 
 		if !hasProblem {
-			return fmt.Errorf("no known problem specified")
+			return fmt.Errorf("couldn't find the problem specified")
 		}
 
 		problemId = problem.Id
 	}
 
-	clarId, err := api.PostClarification(problemId, args[0])
-
+	clar, err := api.PostClarification(problemId, args[0])
 	if err != nil {
 		return fmt.Errorf("could not post clarification: %w", err)
 	}
 
-	_, err = fmt.Fprintf(cmd.OutOrStdout(), "Clarification posted. ID: %s\n", clarId)
+	_, err = fmt.Fprintf(cmd.OutOrStdout(), "Clarification accepted at %s\n", clar.ContestTime)
 	return err
 }
