@@ -9,14 +9,16 @@ import (
 var scoreboardCommand = &cobra.Command{
 	Use:     "scoreboard",
 	Short:   "Show the contest scoreboard",
+	Args:    cobra.NoArgs,
 	RunE:    scoreboard,
 	PreRunE: configHelper("baseurl"),
 }
 
 func scoreboard(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	api, err := contestApi()
 	if err != nil {
-		return fmt.Errorf("could not connect to the API; %w", err)
+		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
 	problems, err := api.Problems()

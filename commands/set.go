@@ -30,6 +30,7 @@ var setIdCommand = &cobra.Command{
 }
 
 func setUrl(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	viper.Set("baseurl", args[0])
 	if err := viper.WriteConfigAs(configFile()); err != nil {
 		return err
@@ -40,6 +41,7 @@ func setUrl(cmd *cobra.Command, args []string) error {
 }
 
 func setId(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	viper.Set("contest", args[0])
 	if err := viper.WriteConfigAs(configFile()); err != nil {
 		return err

@@ -16,6 +16,7 @@ var loginCommand = &cobra.Command{
 }
 
 func login(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	viper.Set("username", args[0])
 	viper.Set("password", args[1])
 	if err := viper.WriteConfigAs(configFile()); err != nil {
