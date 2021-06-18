@@ -10,15 +10,17 @@ import (
 
 var submissionsCommand = &cobra.Command{
 	Use:     "submissions",
-	Short:   "Shows past submissions and their judgements",
+	Short:   "List past submissions and their judgements",
+	Args:    cobra.NoArgs,
 	RunE:    submissions,
 	PreRunE: configHelper("baseurl"),
 }
 
 func submissions(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	api, err := contestApi()
 	if err != nil {
-		return fmt.Errorf("could not connect to the API; %w", err)
+		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
 	// Get the problems, languages, and judgementTypes

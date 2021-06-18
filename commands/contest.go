@@ -11,7 +11,7 @@ import (
 
 var contestCommand = &cobra.Command{
 	Use:   "contest",
-	Short: "Get contests",
+	Short: "List contests",
 	RunE:  fetchContests,
 }
 

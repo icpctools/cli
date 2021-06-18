@@ -9,15 +9,17 @@ import (
 
 var problemCommand = &cobra.Command{
 	Use:     "problem",
-	Short:   "Get problems",
+	Short:   "List problems",
+	Args:    cobra.NoArgs,
 	RunE:    fetchProblems,
 	PreRunE: configHelper("baseurl"),
 }
 
 func fetchProblems(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	api, err := contestApi()
 	if err != nil {
-		return fmt.Errorf("could not connect to the API; %w", err)
+		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
 	p, err := api.Problems()

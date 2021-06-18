@@ -10,15 +10,17 @@ import (
 
 var clarCommand = &cobra.Command{
 	Use:     "clar",
-	Short:   "Get clarifications",
+	Short:   "List clarifications",
+	Args:    cobra.NoArgs,
 	RunE:    fetchClars,
 	PreRunE: configHelper("baseurl"),
 }
 
 func fetchClars(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	api, err := contestApi()
 	if err != nil {
-		return fmt.Errorf("could not connect to the API; %w", err)
+		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
 	clars, err := api.Clarifications()

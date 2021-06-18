@@ -23,6 +23,7 @@ var submitCommand = &cobra.Command{
 }
 
 func submit(cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	api, err := contestApi()
 	if err != nil {
 		return fmt.Errorf("could not connect to the server; %w", err)
