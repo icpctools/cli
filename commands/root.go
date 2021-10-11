@@ -9,10 +9,10 @@ import (
 	"sort"
 	"time"
 
+	interactor "github.com/icpctools/api-interactor"
 	"github.com/kirsle/configdir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	interactor "github.com/tuupke/api-interactor"
 )
 
 const (

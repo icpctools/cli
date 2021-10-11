@@ -9,9 +9,9 @@ import (
 	"unicode"
 
 	"github.com/Songmu/prompter"
+	interactor "github.com/icpctools/api-interactor"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	interactor "github.com/tuupke/api-interactor"
 )
 
 var submitCommand = &cobra.Command{

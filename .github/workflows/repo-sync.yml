@@ -6,7 +6,7 @@ jobs:
     - name: repo-sync
       uses: wei/git-sync@v2
       with:
-        source_repo: "https://${{ secrets.githubAuth }}@github.com/tuupke/cli.git"
+        source_repo: "https://${{ secrets.githubAuth }}@github.com/icpctools/cli.git"
         source_branch: "refs/remotes/source/*"
-        destination_repo: "https://${{ secrets.gitlabAuth }}@gitlab.com/nickygerritsen/cli.git"
+        destination_repo: "https://${{ secrets.gitlabAuth }}@gitlab.com/icpctools/cli.git"
         destination_branch: "refs/heads/*"
