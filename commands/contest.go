@@ -5,8 +5,8 @@ import (
 	"sort"
 	"time"
 
+	interactor "github.com/icpctools/api-interactor"
 	"github.com/spf13/cobra"
-	interactor "github.com/tuupke/api-interactor"
 )
 
 var contestCommand = &cobra.Command{

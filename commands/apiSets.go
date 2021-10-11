@@ -3,7 +3,7 @@ package commands
 import (
 	"strings"
 
-	interactor "github.com/tuupke/api-interactor"
+	interactor "github.com/icpctools/api-interactor"
 )
 
 type (
