@@ -63,4 +63,4 @@ build:
       - contest-${GOOS}-${GOARCH}.tar.gz
     expire_in: 1 month
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
