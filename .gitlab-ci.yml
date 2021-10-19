@@ -1,7 +1,7 @@
 ---
 # GitLab build configuration
 
-image: tuupke/golang:1.16
+image: icpctools/golang:1.16
 
 stages:
   - test
