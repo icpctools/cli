@@ -1,4 +1,4 @@
-module tools.icpc.global/contest
+module github.com/icpctools/cli
 
 go 1.15
 
