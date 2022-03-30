@@ -49,7 +49,10 @@ func submissions(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not get judgements; %w", err)
 	}
 
-	teamId := "1"
+	account, err := api.Account()
+	if err != nil {
+		return fmt.Errorf("could not find user account; %w", err)
+	}
 
 	// sort by submission time
 	sort.Slice(submissions, func(i, j int) bool {
@@ -58,7 +61,7 @@ func submissions(cmd *cobra.Command, args []string) error {
 
 	count := 0
 	for _, s := range submissions {
-		if strings.EqualFold(s.TeamId, teamId) {
+		if strings.EqualFold(s.TeamId, account.TeamId) {
 			count++
 		}
 	}
@@ -68,7 +71,7 @@ func submissions(cmd *cobra.Command, args []string) error {
 	table.Header = []string{"Time", "Problem", "Language", "Judgement Time", "Judgement"}
 	table.Align = []int{ALIGN_RIGHT, ALIGN_LEFT, ALIGN_LEFT, ALIGN_RIGHT, ALIGN_LEFT}
 	for _, s := range submissions {
-		if s.TeamId == teamId {
+		if s.TeamId == account.TeamId {
 			var row = []string{fmt.Sprintf("%v", s.ContestTime)}
 
 			problem, hasProblem := problemSet(problems).byId(s.ProblemId)
