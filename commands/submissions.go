@@ -54,6 +54,10 @@ func submissions(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not find user account; %w", err)
 	}
 
+	if account.TeamId == "" {
+		return fmt.Errorf("must be logged in as a team to see your submissions")
+	}
+
 	// sort by submission time
 	sort.Slice(submissions, func(i, j int) bool {
 		return submissions[i].ContestTime.Duration() < submissions[j].ContestTime.Duration()
