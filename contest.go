@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"tools.icpc.global/contest/commands"
+	"github.com/icpctools/cli/commands"
 )
 
 func main() {

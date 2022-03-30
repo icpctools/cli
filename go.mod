@@ -1,24 +1,17 @@
-module tools.icpc.global/contest
+module github.com/icpctools/cli
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Songmu/prompter v0.5.0
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/icpctools/api-interactor v0.0.0-20211011142132-dd609765c511
+	github.com/icpctools/api-interactor v0.0.0-20220330143230-e36fa18d030c
 	github.com/kirsle/configdir v0.0.0-20170128060238-e45d2f54772f
-	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/mitchellh/mapstructure v1.4.1 // indirect
-	github.com/pelletier/go-toml v1.9.0 // indirect
-	github.com/spf13/afero v1.6.0 // indirect
-	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/cobra v1.1.3
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.7.0
-	golang.org/x/sys v0.0.0-20210426230700-d19ff857e887 // indirect
-	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
-	golang.org/x/text v0.3.6 // indirect
-	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/spf13/afero v1.8.2 // indirect
+	github.com/spf13/cobra v1.4.0
+	github.com/spf13/viper v1.10.1
+	github.com/stretchr/testify v1.7.1
+	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	gopkg.in/ini.v1 v1.66.4 // indirect
 )
