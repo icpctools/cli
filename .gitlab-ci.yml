@@ -42,22 +42,19 @@ build:
   stage: build
   needs: [test, vet, staticcheck, format]
   script:
-    - go build
-    - |
-      if [[ $GOOS == 'windows' ]];
-      then
-        tar -cvzf contest-${GOOS}-${GOARCH}.tar.gz contest.exe;
-      else
-        tar -cvzf contest-${GOOS}-${GOARCH}.tar.gz contest;
-      fi
+    - go build -o $BINARY
+    - tar -cvzf contest-${GOOS}-${GOARCH}.tar.gz $BINARY
   parallel:
     matrix:
       - GOOS: windows
         GOARCH: [386, amd64]
+        BINARY: contest.exe
       - GOOS: linux
         GOARCH: [386, amd64, arm64]
+        BINARY: contest
       - GOOS: darwin
         GOARCH: [amd64, arm64]
+        BINARY: contest
   artifacts:
     paths:
       - contest-${GOOS}-${GOARCH}.tar.gz
