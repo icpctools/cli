@@ -1,0 +1,62 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Test
+        run: go test -count=1 -v ./...
+      - name: Vet
+        run: go vet ./...
+      - uses: reviewdog/action-staticcheck@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Format
+        run: |
+          gofmt -d . > format.patch;
+          DIFF=$(cat format.patch);
+          if [[ $DIFF != "" ]];
+          then
+            cat format.patch;
+            exit 1;
+          fi
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        GOOS: [windows, linux, darwin]
+        GOARCH: [amd64]
+        include:
+          - GOOS: windows
+            GOARCH: 386
+          - GOOS: linux
+            GOARCH: 386
+          - GOOS: linux
+            GOARCH: arm64
+          - GOOS: darwin
+            GOARCH: arm64
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Build
+        run: |
+          BINARY=contest
+          if [[ "${{ matrix.GOOS }}" == "windows" ]];
+          then
+            BINARY=contest.exe
+          fi
+          go build -o $BINARY;
+          tar -cvzf contest-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz $BINARY
+      - uses: actions/upload-artifact@v3
+        with:
+          name: contest-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz
+          path: contest-${{ matrix.GOOS }}-${{ matrix.GOARCH }}.tar.gz
