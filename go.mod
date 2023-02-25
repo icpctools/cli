@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.1
-	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 )
