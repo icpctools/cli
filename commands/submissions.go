@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	interactor "github.com/icpctools/api-interactor"
 	"sort"
 	"strings"
 
@@ -24,27 +25,27 @@ func submissions(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get the problems, languages, and judgementTypes
-	problems, err := api.Problems()
+	problems, err := interactor.List(api, interactor.Problem{})
 	if err != nil {
 		return fmt.Errorf("could not get problems; %w", err)
 	}
 
-	languages, err := api.Languages()
+	languages, err := interactor.List(api, interactor.Language{})
 	if err != nil {
 		return fmt.Errorf("could not get languages; %w", err)
 	}
 
-	judgementTypes, err := api.JudgementTypes()
+	judgementTypes, err := interactor.List(api, interactor.JudgementType{})
 	if err != nil {
 		return fmt.Errorf("could not get judgement types; %w", err)
 	}
 
-	submissions, err := api.Submissions()
+	submissions, err := interactor.List(api, interactor.Submission{})
 	if err != nil {
 		return fmt.Errorf("could not get submissions; %w", err)
 	}
 
-	judgements, err := api.Judgements()
+	judgements, err := interactor.List(api, interactor.Judgement{})
 	if err != nil {
 		return fmt.Errorf("could not get judgements; %w", err)
 	}

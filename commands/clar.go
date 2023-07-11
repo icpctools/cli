@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	interactor "github.com/icpctools/api-interactor"
 	"strings"
 	"unicode"
 
@@ -23,7 +24,7 @@ func fetchClars(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
-	clars, err := api.Clarifications()
+	clars, err := interactor.List(api, interactor.Clarification{})
 
 	if err != nil {
 		return fmt.Errorf("could not retrieve clarifications; %w", err)
@@ -46,7 +47,7 @@ func fetchClars(cmd *cobra.Command, args []string) error {
 		}
 		var prb = ""
 		if o.ProblemId != "" {
-			problems, err := api.Problems()
+			problems, err := interactor.List(api, interactor.Problem{})
 			if err != nil {
 				return fmt.Errorf("could not get problems; %w", err)
 			}

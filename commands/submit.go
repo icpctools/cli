@@ -35,12 +35,12 @@ func submit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get the problems and languages
-	problems, err := api.Problems()
+	problems, err := interactor.List(api, interactor.Problem{})
 	if err != nil {
 		return fmt.Errorf("could not get problems; %w", err)
 	}
 
-	languages, err := api.Languages()
+	languages, err := interactor.List(api, interactor.Language{})
 	if err != nil {
 		return fmt.Errorf("could not get languages; %w", err)
 	}

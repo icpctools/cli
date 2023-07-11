@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	interactor "github.com/icpctools/api-interactor"
 
 	"github.com/spf13/cobra"
 )
@@ -23,7 +24,7 @@ func postClarification(cmd *cobra.Command, args []string) error {
 
 	if problemId != "" {
 		// Get the problems and languages
-		problems, err := api.Problems()
+		problems, err := interactor.List(api, interactor.Problem{})
 		if err != nil {
 			return fmt.Errorf("could not get problems; %w", err)
 		}

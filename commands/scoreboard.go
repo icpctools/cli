@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	interactor "github.com/icpctools/api-interactor"
 
 	"github.com/spf13/cobra"
 )
@@ -21,12 +22,12 @@ func scoreboard(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
-	problems, err := api.Problems()
+	problems, err := interactor.List(api, interactor.Problem{})
 	if err != nil {
 		return fmt.Errorf("could not retrieve problems; %w", err)
 	}
 
-	t, err := api.Teams()
+	t, err := interactor.List(api, interactor.Team{})
 	if err != nil {
 		return fmt.Errorf("could not retrieve teams; %w", err)
 	}

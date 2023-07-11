@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	interactor "github.com/icpctools/api-interactor"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,7 @@ func fetchProblems(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not connect to the server; %w", err)
 	}
 
-	p, err := api.Problems()
+	p, err := interactor.List(api, interactor.Problem{})
 	if err != nil {
 		return fmt.Errorf("could not retrieve problems; %w", err)
 	}
